@@ -5,6 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './users/entities/user.entity';
 import { FranchiseTenant } from './tenants/entities/franchise-tenant.entity';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
   imports: [
@@ -23,11 +26,13 @@ import { FranchiseTenant } from './tenants/entities/franchise-tenant.entity';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [User, FranchiseTenant],
-        synchronize: true, // Only for development, using true to create the 'public' tables automatically for Task 3.5
+        synchronize: true,
         schema: 'public',
       }),
     }),
-    TypeOrmModule.forFeature([User, FranchiseTenant]),
+    AuthModule,
+    UsersModule,
+    TenantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
