@@ -1,0 +1,23 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: ms-identity
+    url: http://ms-identity:3000
+    routes:
+      - name: identity-route
+        paths:
+          - /auth
+  - name: ms-academic
+    url: http://ms-academic:3000
+    routes:
+      - name: academic-route
+        paths:
+          - /academic
+
+plugins:
+  - name: rate-limiting
+    config:
+      second: 5
+      hour: 10000
+      policy: local
