@@ -8,6 +8,8 @@ import { Subject } from './subjects/entities/subject.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
+import { SchoolsModule } from './schools/schools.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +31,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
         logging: true,
       }),
     }),
+    SchoolsModule,
     TypeOrmModule.forFeature([School, Subject]),
   ],
   controllers: [AppController],
