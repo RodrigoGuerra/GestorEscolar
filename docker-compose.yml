@@ -52,6 +52,8 @@ services:
     image: kong:3.4
     container_name: schoolgateway
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /opt/kong/kong.yml

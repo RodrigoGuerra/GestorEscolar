@@ -3,17 +3,40 @@ _transform: true
 
 services:
   - name: ms-identity
-    url: http://ms-identity:3000
+    url: http://host.docker.internal:3001
     routes:
       - name: identity-route
         paths:
           - /auth
+        strip_path: false
   - name: ms-academic
-    url: http://ms-academic:3000
+    url: http://host.docker.internal:3002
     routes:
       - name: academic-route
         paths:
           - /academic
+        strip_path: false
+  - name: ms-hr
+    url: http://host.docker.internal:3003
+    routes:
+      - name: hr-route
+        paths:
+          - /hr
+        strip_path: false
+  - name: ms-finance
+    url: http://host.docker.internal:3004
+    routes:
+      - name: finance-route
+        paths:
+          - /finance
+        strip_path: false
+  - name: ms-notification
+    url: http://host.docker.internal:3005
+    routes:
+      - name: notification-route
+        paths:
+          - /notifications
+        strip_path: false
 
 plugins:
   - name: rate-limiting

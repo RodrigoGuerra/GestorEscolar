@@ -6,13 +6,17 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "start:local": "./scripts/start-local.sh",
+    "start:all": "concurrently -n \"IDENTITY,ACADEMIC,HR,FINANCE,NOTIF,FRONT\" -c \"magenta,blue,green,yellow,cyan,white\" \"npm run dev -- --filter=ms-identity\" \"npm run dev -- --filter=ms-academic\" \"npm run dev -- --filter=ms-hr\" \"npm run dev -- --filter=ms-finance\" \"npm run dev -- --filter=ms-notification\" \"npm run dev -- --filter=frontend\""
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "devDependencies": {
-    "turbo": "latest"
+    "concurrently": "^9.2.1",
+    "turbo": "latest",
+    "wait-on": "^9.0.4"
   }
 }

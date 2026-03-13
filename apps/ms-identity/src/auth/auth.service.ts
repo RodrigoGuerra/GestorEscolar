@@ -16,12 +16,14 @@ export class AuthService {
   ) {}
 
   async validateOAuthUser(profile: any): Promise<any> {
-    const { emails, displayName, id } = profile;
-    const email = emails[0].value;
+    console.log('[AuthService] validateOAuthUser profile:', JSON.stringify(profile));
+    const { email, displayName, id } = profile;
 
     let user = await this.usersRepository.findOne({ where: { email } });
+    console.log('[AuthService] Existing user find result:', user ? 'User Found' : 'Not Found');
 
     if (!user) {
+      console.log('[AuthService] Creating new user...');
       user = this.usersRepository.create({
         email,
         name: displayName,
@@ -29,9 +31,12 @@ export class AuthService {
         role: 'student', // Default role
       });
       await this.usersRepository.save(user);
+      console.log('[AuthService] New user saved successfully with ID:', user.id);
     }
 
+    console.log('[AuthService] Fetching tenants for user ID:', user.id);
     const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
+    console.log('[AuthService] Tenants found:', tenants.length);
 
     const payload = {
       sub: user.id,

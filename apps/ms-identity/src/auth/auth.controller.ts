@@ -13,9 +13,19 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
-    const { accessToken } = await this.authService.validateOAuthUser(req.user);
-    // Redirect to frontend with token (or set cookie)
-    return res.redirect(`http://localhost:5173/login/success?token=${accessToken}`);
+    try {
+      console.log('[AuthController] Starting Google Auth Callback');
+      const { accessToken } = await this.authService.validateOAuthUser(req.user);
+      console.log('[AuthController] Access token generated successfully');
+      return res.redirect(`http://localhost:5173/login/success?token=${accessToken}`);
+    } catch (error) {
+      console.error('[AuthController] Error in Google Auth Callback:', error);
+      return res.status(500).json({
+        message: 'Internal Server Error during Google Auth Callback',
+        error: error.message,
+        stack: error.stack
+      });
+    }
   }
 
   @Get('profile')
