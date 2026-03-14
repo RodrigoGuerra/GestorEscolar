@@ -66,7 +66,7 @@ describe('UsersService', () => {
   describe('provision', () => {
     it('should throw ConflictException if user already exists', async () => {
       userRepository.findOne.mockResolvedValue({ id: '1', email: 'test@example.com' });
-      const dto = { email: 'test@example.com', role: UserRole.TEACHER, schoolId: 'uuid', domainData: {} };
+      const dto = { email: 'test@example.com', role: UserRole.TEACHER, schoolId: 'uuid', franchiseSchema: 'schema1', domainData: {} };
 
       await expect(service.provision(dto)).rejects.toThrow(ConflictException);
     });
@@ -77,13 +77,15 @@ describe('UsersService', () => {
       mockDataSource.createQueryRunner().manager.save.mockResolvedValueOnce({ id: 'new-id', email: 'new@example.com' });
       tenantRepository.create.mockReturnValue({ id: 'mapping-id' });
 
-      const dto = { email: 'new@example.com', role: UserRole.TEACHER, schoolId: 'uuid', domainData: { cpf: '123' } };
+      const dto = { email: 'new@example.com', role: UserRole.TEACHER, schoolId: 'uuid', franchiseSchema: 'schema1', domainData: { cpf: '123' } };
       const result = await service.provision(dto);
 
       expect(result).toEqual({ message: 'User provisioned successfully', userId: 'new-id' });
       expect(clientProxy.emit).toHaveBeenCalledWith('user.provisioned', expect.objectContaining({
         email: 'new@example.com',
         role: UserRole.TEACHER,
+        user_id: 'new-id',
+        school_id: 'uuid',
       }));
     });
   });

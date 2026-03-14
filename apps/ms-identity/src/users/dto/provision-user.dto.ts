@@ -18,6 +18,9 @@ export class ProvisionUserDto {
   @IsUUID()
   schoolId: string;
 
+  @IsNotEmpty()
+  franchiseSchema: string;
+
   @IsObject()
   @IsNotEmpty()
   domainData: Record<string, any>;

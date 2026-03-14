@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -44,11 +44,11 @@ describe('AuthService', () => {
     tenantRepository = module.get(getRepositoryToken(FranchiseTenant));
   });
 
-  it('should throw UnauthorizedException if user not found', async () => {
+  it('should throw ForbiddenException if user not found', async () => {
     userRepository.findOne.mockResolvedValue(null);
     const profile = { email: 'unknown@example.com', displayName: 'Unknown', id: 'google-id' };
 
-    await expect(service.validateOAuthUser(profile)).rejects.toThrow(UnauthorizedException);
+    await expect(service.validateOAuthUser(profile)).rejects.toThrow(ForbiddenException);
   });
 
   it('should update and activate a pre-registered user', async () => {

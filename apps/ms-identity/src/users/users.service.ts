@@ -36,17 +36,14 @@ export class UsersService {
       // 1. Create User (schema public)
       const user = this.usersRepository.create({
         email,
-        role: role.toString(), // Default role from DTO
+        role: role.toString(),
       });
       const savedUser = await queryRunner.manager.save(user);
 
       // 2. Create Tenant Mapping
-      // In a real scenario, we might need to derive franchise_schema from schoolId or other data.
-      // For now, we'll assume a default or pass it in domainData/derive it.
-      // The PRD says it links to franchise_schema.
       const tenantMapping = this.tenantMappingsRepository.create({
         userId: savedUser.id,
-        franchiseSchema: 'tenant_default', // Placeholder, should be dynamic
+        franchiseSchema: dto.franchiseSchema,
         schoolId,
         role: role.toString(),
       });
@@ -54,13 +51,13 @@ export class UsersService {
 
       await queryRunner.commitTransaction();
 
-      // 3. Emit Event
+      // 3. Emit Event (PRD Payload: { user_id, email, role, school_id, domain_data })
       const payload = {
-        userId: savedUser.id,
+        user_id: savedUser.id,
         email,
         role,
-        schoolId,
-        domainData,
+        school_id: schoolId,
+        domain_data: domainData,
       };
 
       this.client.emit('user.provisioned', payload);

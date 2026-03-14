@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,7 +23,7 @@ export class AuthService {
 
     if (!user) {
       this.logger.warn(`Forbidden login attempt: ${email} is not pre-registered.`);
-      throw new UnauthorizedException('Usuário não convidado pela instituição');
+      throw new ForbiddenException('Usuário não convidado pela instituição');
     }
 
     // Phase 2: Activation/Update
