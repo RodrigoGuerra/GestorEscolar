@@ -14,9 +14,11 @@ export class SubjectsService {
   ) {}
 
   async create(createSubjectDto: CreateSubjectDto): Promise<Subject> {
-    const school = await this.schoolsService.findOne(createSubjectDto.matrixId);
-    if (!school.isMatrix) {
-      throw new ForbiddenException('Only Matrix schools can create subjects');
+    if (createSubjectDto.matrixId) {
+      const school = await this.schoolsService.findOne(createSubjectDto.matrixId);
+      if (!school.isMatrix) {
+        throw new ForbiddenException('Only Matrix schools can create subjects');
+      }
     }
     const subject = this.subjectsRepository.create(createSubjectDto);
     return this.subjectsRepository.save(subject);

@@ -1,13 +1,13 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID, IsEmail } from 'class-validator';
 
 export class CreateEmployeeDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
-  schoolId: string;
+  name: string;
 
-  @IsUUID()
-  @IsOptional()
-  userId?: string;
+  @IsString()
+  @IsEmail()
+  email: string;
 
   @IsString()
   @IsNotEmpty()
@@ -20,4 +20,42 @@ export class CreateEmployeeDto {
   @IsNumber()
   @IsNotEmpty()
   hourlyRate: number;
+
+  @IsUUID()
+  @IsNotEmpty()
+  schoolId: string;
+
+  @IsUUID()
+  @IsOptional()
+  userId?: string;
+}
+
+export class UpdateEmployeeDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  cpf?: string;
+
+  @IsString()
+  @IsOptional()
+  position?: string;
+
+  @IsNumber()
+  @IsOptional()
+  hourlyRate?: number;
+
+  @IsUUID()
+  @IsOptional()
+  schoolId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  userId?: string;
 }

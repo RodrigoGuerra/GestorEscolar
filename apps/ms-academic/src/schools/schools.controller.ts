@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from
 import { SchoolsService } from './schools.service';
 import { CreateSchoolDto, UpdateSchoolDto } from './dto/school.dto';
 
-@Controller('schools')
+@Controller('academic/schools')
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}
 

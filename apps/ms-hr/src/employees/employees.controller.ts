@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, ParseUUIDPipe } from '@nest
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/employee.dto';
 
-@Controller('employees')
+@Controller('hr/employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 

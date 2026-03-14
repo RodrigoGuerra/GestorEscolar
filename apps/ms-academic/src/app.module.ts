@@ -5,11 +5,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { School } from './schools/entities/school.entity';
 import { Subject } from './subjects/entities/subject.entity';
+import { Class } from './classes/entities/class.entity';
+import { Grade } from './grades/entities/grade.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
 import { SchoolsModule } from './schools/schools.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { ClassesModule } from './classes/classes.module';
+import { GradesModule } from './grades/grades.module';
 
 @Module({
   imports: [
@@ -27,14 +31,16 @@ import { SubjectsModule } from './subjects/subjects.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [School, Subject],
-        synchronize: false, // We'll handle migrations/schema creation manually or via a startup service
+        entities: [School, Subject, Class, Grade],
+        synchronize: true, // Enabled for development to ensure tables exist
         logging: true,
       }),
     }),
     SchoolsModule,
     SubjectsModule,
-    TypeOrmModule.forFeature([School, Subject]),
+    ClassesModule,
+    GradesModule,
+    TypeOrmModule.forFeature([School, Subject, Class, Grade]),
   ],
   controllers: [AppController],
   providers: [

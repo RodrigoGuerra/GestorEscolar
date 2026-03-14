@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from
 import { SubjectsService } from './subjects.service';
 import { CreateSubjectDto, UpdateSubjectDto } from './dto/subject.dto';
 
-@Controller('subjects')
+@Controller('academic/subjects')
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 

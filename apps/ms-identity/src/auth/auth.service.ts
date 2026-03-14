@@ -35,8 +35,21 @@ export class AuthService {
     }
 
     console.log('[AuthService] Fetching tenants for user ID:', user.id);
-    const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
+    let tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
     console.log('[AuthService] Tenants found:', tenants.length);
+
+    if (tenants.length === 0) {
+      console.log('[AuthService] No tenants found. Assigning default: franchise_alpha');
+      const defaultTenant = this.tenantsRepository.create({
+        userId: user.id,
+        franchiseSchema: 'franchise_alpha',
+        schoolId: '1', // Default school ID for dev
+        role: 'owner',
+      });
+      await this.tenantsRepository.save(defaultTenant);
+      tenants = [defaultTenant];
+      console.log('[AuthService] Default tenant assigned and saved.');
+    }
 
     const payload = {
       sub: user.id,

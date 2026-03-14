@@ -5,8 +5,13 @@ import TenantSelectionPage from './pages/TenantSelectionPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import { useAuthStore } from './stores/authStore';
 import { useTenantStore } from './stores/tenantStore';
-import ComingSoon from './components/ui/ComingSoon';
-import { BookOpen, School, Users, CreditCard, Bell, LayoutDashboard } from 'lucide-react';
+import AcademicPage from './pages/AcademicPage';
+import SubjectsPage from './pages/SubjectsPage';
+import EmployeesPage from './pages/EmployeesPage';
+import FinancePage from './pages/FinancePage';
+import NotificationsPage from './pages/NotificationsPage';
+import ClassesPage from './pages/ClassesPage';
+import { School, Users, LayoutDashboard } from 'lucide-react';
 import Card from './components/ui/Card';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -76,11 +81,12 @@ function App() {
               </div>
             </div>
           } />
-          <Route path="academic" element={<ComingSoon title="Acadêmico" icon={School} />} />
-          <Route path="subjects" element={<ComingSoon title="Disciplinas" icon={BookOpen} />} />
-          <Route path="employees" element={<ComingSoon title="Colaboradores" icon={Users} />} />
-          <Route path="finance" element={<ComingSoon title="Financeiro" icon={CreditCard} />} />
-          <Route path="notifications" element={<ComingSoon title="Notificações" icon={Bell} />} />
+          <Route path="academic" element={<AcademicPage />} />
+          <Route path="subjects" element={<SubjectsPage />} />
+          <Route path="classes" element={<ClassesPage />} />
+          <Route path="employees" element={<EmployeesPage />} />
+          <Route path="finance" element={<FinancePage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Routes>
     </Router>

@@ -5,7 +5,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Invoice } from './invoices/entities/invoice.entity';
-import { CronService } from './cron/cron.service';
+import { Transaction } from './transactions/entities/transaction.entity';
+import { TransactionsModule } from './transactions/transactions.module';
+import { InvoicesModule } from './invoices/invoices.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
@@ -25,18 +27,18 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [Invoice],
-        synchronize: false,
+        entities: [Invoice, Transaction],
+        synchronize: true,
         logging: true,
       }),
     }),
-    TypeOrmModule.forFeature([Invoice]),
+    TransactionsModule,
+    InvoicesModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    CronService,
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantInterceptor,

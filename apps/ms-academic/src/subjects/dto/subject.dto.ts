@@ -14,8 +14,8 @@ export class CreateSubjectDto {
   syllabus?: string;
 
   @IsUUID()
-  @IsNotEmpty()
-  matrixId: string;
+  @IsOptional()
+  matrixId?: string;
 }
 
 export class UpdateSubjectDto {

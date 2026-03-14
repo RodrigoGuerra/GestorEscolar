@@ -14,6 +14,6 @@ export class Subject {
   @Column({ type: 'text', nullable: true })
   syllabus: string;
 
-  @Column({ name: 'matrix_id' })
+  @Column({ name: 'matrix_id', nullable: true })
   matrixId: string;
 }

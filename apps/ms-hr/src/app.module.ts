@@ -28,7 +28,7 @@ import { TimeRecordsModule } from './time-records/time-records.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [Employee, BankDetails, TimeRecord],
-        synchronize: false,
+        synchronize: true,
         logging: true,
       }),
     }),

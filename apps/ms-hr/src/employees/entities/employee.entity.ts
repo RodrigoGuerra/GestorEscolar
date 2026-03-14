@@ -12,6 +12,12 @@ export class Employee {
   @Column({ name: 'user_id', nullable: true })
   userId: string;
 
+  @Column()
+  name: string;
+
+  @Column()
+  email: string;
+
   @Column({ unique: true })
   cpf: string;
 
