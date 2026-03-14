@@ -11,7 +11,7 @@ export class User {
   @Column({ name: 'google_id', nullable: true })
   googleId: string;
 
-  @Column()
+  @Column({ nullable: true })
   name: string;
 
   @Column({ default: 'student' })

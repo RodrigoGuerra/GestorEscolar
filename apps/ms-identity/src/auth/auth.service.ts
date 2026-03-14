@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -16,45 +17,30 @@ export class AuthService {
   ) {}
 
   async validateOAuthUser(profile: any): Promise<any> {
-    console.log('[AuthService] validateOAuthUser profile:', JSON.stringify(profile));
     const { email, displayName, id } = profile;
 
     let user = await this.usersRepository.findOne({ where: { email } });
-    console.log('[AuthService] Existing user find result:', user ? 'User Found' : 'Not Found');
 
     if (!user) {
-      console.log('[AuthService] Creating new user...');
-      user = this.usersRepository.create({
-        email,
-        name: displayName,
+      this.logger.warn(`Forbidden login attempt: ${email} is not pre-registered.`);
+      throw new UnauthorizedException('Usuário não convidado pela instituição');
+    }
+
+    // Phase 2: Activation/Update
+    if (!user.googleId || !user.name) {
+      await this.usersRepository.update(user.id, {
         googleId: id,
-        role: 'student', // Default role
+        name: displayName,
       });
-      await this.usersRepository.save(user);
-      console.log('[AuthService] New user saved successfully with ID:', user.id);
+      user = await this.usersRepository.findOne({ where: { id: user.id } }) as User;
     }
 
-    console.log('[AuthService] Fetching tenants for user ID:', user.id);
-    let tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
-    console.log('[AuthService] Tenants found:', tenants.length);
-
-    if (tenants.length === 0) {
-      console.log('[AuthService] No tenants found. Assigning default: franchise_alpha');
-      const defaultTenant = this.tenantsRepository.create({
-        userId: user.id,
-        franchiseSchema: 'franchise_alpha',
-        schoolId: '1', // Default school ID for dev
-        role: 'owner',
-      });
-      await this.tenantsRepository.save(defaultTenant);
-      tenants = [defaultTenant];
-      console.log('[AuthService] Default tenant assigned and saved.');
-    }
+    const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
 
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: user.role, // In identity, user has a role, but mappings also have roles. The PRD mentions both.
       tenants: tenants.map(t => ({
         schema: t.franchiseSchema,
         schoolId: t.schoolId,
