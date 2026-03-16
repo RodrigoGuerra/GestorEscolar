@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../../../components/ui/Card';
 import { Users, BookOpen, Calendar, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useSchoolStore } from '../../../stores/schoolStore';
@@ -41,9 +42,9 @@ const OverviewGestor: React.FC = () => {
             <p className="text-3xl font-bold text-white">{metrics.activeStudents}</p>
           </div>
         </div>
-        <button className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
+        <Link to={`/escola/${currentTenant?.id}/alunos`} className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
            Ver Listagem <ArrowUpRight size={14} />
-        </button>
+        </Link>
       </Card>
 
       <Card className="p-8 bg-surface border-border hover:border-secondary/50 transition-all">
@@ -56,9 +57,9 @@ const OverviewGestor: React.FC = () => {
             <p className="text-3xl font-bold text-white">{metrics.classesCount}</p>
           </div>
         </div>
-        <button className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
+        <Link to={`/escola/${currentTenant?.id}/turmas`} className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
            Grade Horária <ArrowUpRight size={14} />
-        </button>
+        </Link>
       </Card>
 
       <Card className="p-8 bg-surface border-border hover:border-success/50 transition-all">
@@ -71,9 +72,9 @@ const OverviewGestor: React.FC = () => {
             <p className="text-3xl font-bold text-white">{metrics.eventsCount}</p>
           </div>
         </div>
-        <button className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
+        <Link to={`/escola/${currentTenant?.id}/cronograma`} className="w-full py-3 bg-white/5 rounded-xl border border-white/10 text-xs font-bold text-white hover:bg-white/10 flex items-center justify-center gap-2">
            Calendário <ArrowUpRight size={14} />
-        </button>
+        </Link>
       </Card>
     </div>
   );

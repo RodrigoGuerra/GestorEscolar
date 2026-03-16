@@ -41,20 +41,27 @@ export class TenantInterceptor implements NestInterceptor {
     let tenantSchema: string | undefined;
 
     if (headerTenant && headerTenant !== 'undefined' && headerTenant !== '') {
-      // Validate requested tenant against authorized list in JWT
-      const authorized = authorizedTenants.find((t: any) => t.schema === headerTenant);
-      if (!authorized && user.role !== 'admin') {
-        throw new ForbiddenException(`Access to tenant ${headerTenant} is not authorized`);
+      // Allow 'public' schema explicitly for fetching shared data like schools if user has right global role
+      if (headerTenant === 'public') {
+        if (user.role === 'admin' || user.role === 'GESTOR') {
+          tenantSchema = 'public';
+        } else {
+          throw new ForbiddenException(`Access to tenant public is not authorized`);
+        }
+      } else {
+        // Validate requested tenant against authorized list in JWT
+        const authorized = authorizedTenants.find((t: any) => t.schema === headerTenant);
+        if (!authorized && user.role !== 'admin') {
+          throw new ForbiddenException(`Access to tenant ${headerTenant} is not authorized`);
+        }
+        tenantSchema = headerTenant;
       }
-      tenantSchema = headerTenant;
     } else {
       // Fallback to first authorized tenant if none specified
       tenantSchema = authorizedTenants[0]?.schema;
     }
 
     if (!tenantSchema) {
-      // In development/initial setup, we might allow public access to some routes, 
-      // but for academia, a tenant is strictly required for data isolation.
       if (user.role === 'admin' || user.role === 'GESTOR') {
         tenantSchema = 'public';
       } else {

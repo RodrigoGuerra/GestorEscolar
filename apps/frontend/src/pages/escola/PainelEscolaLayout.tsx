@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet, useParams, NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { 
@@ -51,13 +51,16 @@ const PainelEscolaLayout: React.FC = () => {
 
         <nav className="flex items-center gap-2 bg-black/20 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
           {currentTabs.map((tab) => (
-            <button 
+            <NavLink 
               key={tab.id}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold text-text-secondary hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 whitespace-nowrap"
+              to={`/escola/${id}/${tab.id}`}
+              className={({ isActive }) => `px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                isActive ? 'bg-primary/20 text-primary' : 'text-text-secondary hover:text-white hover:bg-white/5'
+              }`}
             >
               <tab.icon size={18} />
               {tab.label}
-            </button>
+            </NavLink>
           ))}
         </nav>
       </div>

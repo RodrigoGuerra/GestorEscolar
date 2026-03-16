@@ -17,26 +17,38 @@ export interface IClassSchedule {
   date: string;
 }
 
+export interface IClass {
+  id: string;
+  code: string;
+  name: string;
+  schoolId: string;
+  capacity: number;
+  academicYear: number;
+  shift: 'MORNING' | 'AFTERNOON' | 'EVENING';
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
 interface AcademicState {
   grades: IGrade[];
   schedules: IClassSchedule[];
+  classes: IClass[];
   loading: boolean;
   error: string | null;
   fetchStudentData: (studentId: string) => Promise<void>;
+  fetchClasses: () => Promise<void>;
   getOverviewMetrics: () => { averageGrade: number; frequency: string; classesToday: number };
 }
 
 export const useAcademicStore = create<AcademicState>((set, get) => ({
   grades: [],
   schedules: [],
+  classes: [],
   loading: false,
   error: null,
 
   fetchStudentData: async (studentId: string) => {
     set({ loading: true, error: null });
     try {
-      // For now fetching grades, schedules might need a specific endpoint not yet found
-      // We will aggregate grades to show the average
       const [gradesRes] = await Promise.all([
         api.get('/academic/grades'),
       ]);
@@ -47,6 +59,16 @@ export const useAcademicStore = create<AcademicState>((set, get) => ({
       });
     } catch (err: any) {
       set({ error: err.response?.data?.message || err.message, loading: false });
+    }
+  },
+
+  fetchClasses: async () => {
+    set({ loading: true, error: null });
+    try {
+       const res = await api.get('/academic/classes');
+       set({ classes: res.data, loading: false });
+    } catch (err: any) {
+       set({ error: err.response?.data?.message || err.message, loading: false });
     }
   },
 

@@ -23,6 +23,9 @@ import PainelEscolaLayout from './pages/escola/PainelEscolaLayout';
 import OverviewGestor from './pages/escola/gestor/Overview';
 import OverviewFuncionario from './pages/escola/funcionario/Overview';
 import OverviewAluno from './pages/escola/aluno/Overview';
+import SchoolAlunos from './pages/escola/gestor/SchoolAlunos';
+import SchoolTurmas from './pages/escola/gestor/SchoolTurmas';
+import SchoolCronograma from './pages/escola/gestor/SchoolCronograma';
 
 // Guards
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -95,9 +98,25 @@ function App() {
           
           {/* Módulo Escola (Visão Local) */}
           <Route path="escola/:id" element={<PainelEscolaLayout />}>
+             <Route index element={<Navigate to="painel" replace />} />
              <Route path="painel" element={
                <RoleGuard allowedRoles={['GESTOR', 'FUNCIONARIO', 'ALUNO']}>
                   <RoleSpecificOverview />
+               </RoleGuard>
+             } />
+             <Route path="alunos" element={
+               <RoleGuard allowedRoles={['GESTOR']}>
+                  <SchoolAlunos />
+               </RoleGuard>
+             } />
+             <Route path="turmas" element={
+               <RoleGuard allowedRoles={['GESTOR', 'FUNCIONARIO', 'ALUNO']}>
+                  <SchoolTurmas />
+               </RoleGuard>
+             } />
+             <Route path="cronograma" element={
+               <RoleGuard allowedRoles={['GESTOR', 'FUNCIONARIO', 'ALUNO']}>
+                  <SchoolCronograma />
                </RoleGuard>
              } />
           </Route>

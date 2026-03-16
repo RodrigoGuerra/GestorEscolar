@@ -7,8 +7,12 @@ export class AppController {
 
   @EventPattern('student.overdue')
   handleStudentOverdue(@Payload() data: any) {
-    this.logger.log(`[Notification] Received student.overdue event: ${JSON.stringify(data)}`);
+    this.logger.log(
+      `[Notification] Received student.overdue event: ${JSON.stringify(data)}`,
+    );
     // Here we would trigger email/push notification
-    this.logger.log(`Alerting student ${data.studentId} about overdue invoice ${data.invoiceId}`);
+    this.logger.log(
+      `Alerting student ${data.studentId} about overdue invoice ${data.invoiceId}`,
+    );
   }
 }
