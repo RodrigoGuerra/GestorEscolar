@@ -43,7 +43,7 @@ export class TenantInterceptor implements NestInterceptor {
     if (headerTenant && headerTenant !== 'undefined' && headerTenant !== '') {
       // Allow 'public' schema explicitly for fetching shared data like schools if user has right global role
       if (headerTenant === 'public') {
-        if (user.role === 'admin' || user.role === 'GESTOR') {
+        if (user.role && ['admin', 'gestor'].includes(user.role.toLowerCase())) {
           tenantSchema = 'public';
         } else {
           throw new ForbiddenException(`Access to tenant public is not authorized`);
@@ -51,7 +51,7 @@ export class TenantInterceptor implements NestInterceptor {
       } else {
         // Validate requested tenant against authorized list in JWT
         const authorized = authorizedTenants.find((t: any) => t.schema === headerTenant);
-        if (!authorized && user.role !== 'admin') {
+        if (!authorized && user.role?.toLowerCase() !== 'admin') {
           throw new ForbiddenException(`Access to tenant ${headerTenant} is not authorized`);
         }
         tenantSchema = headerTenant;
@@ -62,7 +62,7 @@ export class TenantInterceptor implements NestInterceptor {
     }
 
     if (!tenantSchema) {
-      if (user.role === 'admin' || user.role === 'GESTOR') {
+      if (user.role && ['admin', 'gestor'].includes(user.role.toLowerCase())) {
         tenantSchema = 'public';
       } else {
         throw new ForbiddenException('No valid tenant context found');
