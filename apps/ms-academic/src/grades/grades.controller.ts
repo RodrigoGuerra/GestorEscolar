@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { GradesService } from './grades.service';
 import { CreateGradeDto, UpdateGradeDto } from './dto/grade.dto';
 
@@ -22,7 +31,10 @@ export class GradesController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateGradeDto: UpdateGradeDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateGradeDto: UpdateGradeDto,
+  ) {
     return this.gradesService.update(id, updateGradeDto);
   }
 

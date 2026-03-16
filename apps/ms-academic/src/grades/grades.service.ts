@@ -21,7 +21,10 @@ export class GradesService {
   }
 
   async findOne(id: string) {
-    const entity = await this.repository.findOne({ where: { id }, relations: ['subject'] });
+    const entity = await this.repository.findOne({
+      where: { id },
+      relations: ['subject'],
+    });
     if (!entity) throw new NotFoundException(`Grade with ID ${id} not found`);
     return entity;
   }

@@ -32,7 +32,10 @@ export class StudentsService {
     return student;
   }
 
-  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async update(
+    id: string,
+    updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
     const student = await this.findOne(id);
     const updated = Object.assign(student, updateStudentDto);
     return this.studentsRepository.save(updated);

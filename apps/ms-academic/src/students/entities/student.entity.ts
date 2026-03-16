@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { School } from '../../schools/entities/school.entity';
 import { Class } from '../../classes/entities/class.entity';
 
@@ -80,7 +90,7 @@ export class Student {
   @JoinTable({
     name: 'student_classes',
     joinColumn: { name: 'student_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'class_id', referencedColumnName: 'id' }
+    inverseJoinColumn: { name: 'class_id', referencedColumnName: 'id' },
   })
   classes: Class[];
 

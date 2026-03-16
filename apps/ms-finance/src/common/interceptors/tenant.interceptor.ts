@@ -40,17 +40,35 @@ export class TenantInterceptor implements NestInterceptor {
     let tenantSchema: string | undefined;
 
     if (headerTenant && headerTenant !== 'undefined' && headerTenant !== '') {
-      const authorized = authorizedTenants.find((t: any) => t.schema === headerTenant);
-      if (!authorized && user.role !== 'admin') {
-        throw new ForbiddenException(`Access to tenant ${headerTenant} is not authorized`);
+      if (headerTenant === 'public') {
+        const userRole = user.role?.toLowerCase();
+        const hasAuthorizedTenantRole = authorizedTenants.some((t: any) => 
+          ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase())
+        );
+
+        if (userRole === 'admin' || userRole === 'gestor' || userRole === 'manager' || hasAuthorizedTenantRole) {
+          tenantSchema = 'public';
+        } else {
+          throw new ForbiddenException(`Access to tenant public is not authorized`);
+        }
+      } else {
+        const authorized = authorizedTenants.find((t: any) => t.schema === headerTenant);
+        if (!authorized && user.role?.toLowerCase() !== 'admin' && user.role?.toLowerCase() !== 'manager') {
+          throw new ForbiddenException(`Access to tenant ${headerTenant} is not authorized`);
+        }
+        tenantSchema = headerTenant;
       }
-      tenantSchema = headerTenant;
     } else {
       tenantSchema = authorizedTenants[0]?.schema;
     }
 
     if (!tenantSchema) {
-      if (user.role === 'admin') {
+      const userRole = user.role?.toLowerCase();
+      const hasAuthorizedTenantRole = authorizedTenants.some((t: any) => 
+        ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase())
+      );
+
+      if (userRole === 'admin' || userRole === 'gestor' || userRole === 'manager' || hasAuthorizedTenantRole) {
         tenantSchema = 'public';
       } else {
         throw new ForbiddenException('No valid tenant context found');

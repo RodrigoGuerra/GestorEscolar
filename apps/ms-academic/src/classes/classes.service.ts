@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Class } from './entities/class.entity';
@@ -21,7 +25,10 @@ export class ClassesService {
   }
 
   async findOne(id: string) {
-    const entity = await this.repository.findOne({ where: { id }, relations: ['school', 'students'] });
+    const entity = await this.repository.findOne({
+      where: { id },
+      relations: ['school', 'students'],
+    });
     if (!entity) throw new NotFoundException(`Class with ID ${id} not found`);
     return entity;
   }
