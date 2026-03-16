@@ -14,6 +14,8 @@ import { SchoolsModule } from './schools/schools.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { ClassesModule } from './classes/classes.module';
 import { GradesModule } from './grades/grades.module';
+import { StudentsModule } from './students/students.module';
+import { Student } from './students/entities/student.entity';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { GradesModule } from './grades/grades.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [School, Subject, Class, Grade],
+        entities: [School, Subject, Class, Grade, Student],
         synchronize: true, // Enabled for development to ensure tables exist
         logging: true,
       }),
@@ -40,7 +42,8 @@ import { GradesModule } from './grades/grades.module';
     SubjectsModule,
     ClassesModule,
     GradesModule,
-    TypeOrmModule.forFeature([School, Subject, Class, Grade]),
+    StudentsModule,
+    TypeOrmModule.forFeature([School, Subject, Class, Grade, Student]),
   ],
   controllers: [AppController],
   providers: [

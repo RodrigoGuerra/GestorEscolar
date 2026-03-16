@@ -30,4 +30,12 @@ export class ClassesController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.classesService.remove(id);
   }
+
+  @Post(':id/students')
+  assignStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('studentId', ParseUUIDPipe) studentId: string,
+  ) {
+    return this.classesService.assignStudent(id, studentId);
+  }
 }

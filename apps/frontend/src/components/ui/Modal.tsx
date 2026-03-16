@@ -6,9 +6,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,9 +34,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div 
         ref={modalRef}
-        className="bg-surface border border-white/10 w-full max-w-lg rounded-3xl shadow-premium overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500"
+        className={`bg-surface border border-white/10 w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-3xl shadow-premium overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-500`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-white/5">
+        <div className="flex items-center justify-between p-6 border-b border-white/5 flex-shrink-0">
           <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>
           <button 
             onClick={onClose}
@@ -44,7 +45,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             <X size={20} />
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
           {children}
         </div>
       </div>

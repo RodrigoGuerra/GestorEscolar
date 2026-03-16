@@ -28,6 +28,7 @@ const Sidebar: React.FC = () => {
   const menuItems: MenuItem[] = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/', roles: ['GESTOR'] },
     { name: 'Disciplina', icon: BookOpen, href: '/subjects', roles: ['GESTOR'] },
+    { name: 'Alunos', icon: Users, href: '/students', roles: ['GESTOR'] },
     { name: 'Acadêmico', icon: School, href: '/academic', roles: ['GESTOR'] },
     { name: 'Colaboradores', icon: Users, href: '/employees', roles: ['GESTOR'] },
     { name: 'Financeiro', icon: CreditCard, href: '/finance', roles: ['GESTOR'] },

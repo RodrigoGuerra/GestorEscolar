@@ -15,6 +15,7 @@ import Disciplina from './pages/matriz/Disciplina';
 import Academico from './pages/matriz/Academico';
 import Colaboradores from './pages/matriz/Colaboradores';
 import Financeiro from './pages/matriz/Financeiro';
+import Alunos from './pages/matriz/Alunos';
 import NotificationsPage from './pages/NotificationsPage';
 import ClassesPage from './pages/ClassesPage';
 import SeletorEscolas from './pages/escola/SeletorEscolas';
@@ -87,6 +88,7 @@ function App() {
           {/* Rotas Protegidas do Gestor */}
           <Route path="academic" element={<RoleGuard allowedRoles={['GESTOR']}><Academico /></RoleGuard>} />
           <Route path="subjects" element={<RoleGuard allowedRoles={['GESTOR']}><Disciplina /></RoleGuard>} />
+          <Route path="students" element={<RoleGuard allowedRoles={['GESTOR']}><Alunos /></RoleGuard>} />
           <Route path="classes" element={<RoleGuard allowedRoles={['GESTOR']}><ClassesPage /></RoleGuard>} />
           <Route path="employees" element={<RoleGuard allowedRoles={['GESTOR']}><Colaboradores /></RoleGuard>} />
           <Route path="finance" element={<RoleGuard allowedRoles={['GESTOR']}><Financeiro /></RoleGuard>} />
