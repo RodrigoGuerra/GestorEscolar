@@ -20,6 +20,10 @@ export default function SubjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', workload: 0 });
   const [submitting, setSubmitting] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<SubjectData | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [subjectToDelete, setSubjectToDelete] = useState<SubjectData | null>(null);
 
   const token = useAuthStore(state => state.token);
   const tenant = useTenantStore(state => state.currentTenant);
@@ -46,6 +50,7 @@ export default function SubjectsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
       // Find a matrix school to satisfy backend requirement
       const schoolsRes = await api.get('/academic/schools');
@@ -53,19 +58,65 @@ export default function SubjectsPage() {
       
       const payload = {
         ...formData,
+        name: formData.name.toUpperCase(),
         matrixId: matrixSchool?.id // Backend might still need it if we didn't fix DTO yet or if DB requires it
       };
 
-      await api.post('/academic/subjects', payload);
+      if (editingSubject) {
+        await api.patch(`/academic/subjects/${editingSubject.id}`, payload);
+      } else {
+        await api.post('/academic/subjects', payload);
+      }
+
       setIsModalOpen(false);
+      setEditingSubject(null);
       setFormData({ name: '', workload: 0 });
       fetchSubjects();
-    } catch (err) {
-      console.error('Failed to create subject', err);
+    } catch (err: any) {
+      console.error('Failed to save subject', err);
+      setError(err.response?.data?.message || 'Erro ao salvar disciplina. Verifique se já existe uma com este nome.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleEdit = (subject: SubjectData) => {
+    setEditingSubject(subject);
+    setFormData({ name: subject.name, workload: subject.workload });
+    setIsModalOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingSubject(null);
+    setFormData({ name: '', workload: 0 });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = (subject: SubjectData) => {
+    setSubjectToDelete(subject);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!subjectToDelete) return;
+    
+    setSubmitting(true);
+    try {
+      await api.delete(`/academic/subjects/${subjectToDelete.id}`);
+      setIsDeleteModalOpen(false);
+      setSubjectToDelete(null);
+      fetchSubjects();
+    } catch (err: any) {
+      console.error('Failed to delete subject', err);
+      setError(err.response?.data?.message || 'Erro ao excluir disciplina.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filteredSubjects = subjects.filter(subject => 
+    subject.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -77,7 +128,7 @@ export default function SubjectsPage() {
         <Button 
           leftIcon={<Plus size={20} />} 
           className="shadow-glow"
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleAddNew}
         >
           Nova Disciplina
         </Button>
@@ -91,8 +142,11 @@ export default function SubjectsPage() {
 
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Nova Disciplina"
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingSubject(null);
+        }} 
+        title={editingSubject ? "Editar Disciplina" : "Nova Disciplina"}
       >
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -101,9 +155,9 @@ export default function SubjectsPage() {
               required
               type="text" 
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ex: Matemática"
-              className="w-full bg-secondary border border-border rounded-xl py-3 px-4 text-white placeholder:text-text-muted focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
+              onChange={(e) => setFormData({ ...formData, name: e.target.value.toUpperCase() })}
+              placeholder="Ex: MATEMÁTICA"
+              className="w-full bg-secondary border border-border rounded-xl py-3 px-4 text-white placeholder:text-text-muted focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all uppercase"
             />
           </div>
           <div className="space-y-2">
@@ -131,10 +185,40 @@ export default function SubjectsPage() {
               type="submit"
               isLoading={submitting}
             >
-              Salvar Disciplina
+              {editingSubject ? "Salvar Alterações" : "Salvar Disciplina"}
             </Button>
           </div>
         </form>
+      </Modal>
+      
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Confirmar Exclusão"
+      >
+        <div className="space-y-6">
+          <p className="text-text-secondary leading-relaxed">
+            Tem certeza que deseja excluir a disciplina <span className="text-white font-bold">"{subjectToDelete?.name}"</span>? 
+            Esta ação não pode ser desfeita.
+          </p>
+          <div className="flex gap-3">
+            <Button 
+              variant="secondary" 
+              className="flex-1" 
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="primary"
+              className="flex-1 bg-error hover:bg-error/80 border-none shadow-glow-error" 
+              onClick={confirmDelete}
+              isLoading={submitting}
+            >
+              Excluir
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       <Card className="bg-surface border-border overflow-hidden">
@@ -144,6 +228,8 @@ export default function SubjectsPage() {
             <input 
               type="text" 
               placeholder="Buscar disciplina..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-white placeholder:text-text-muted focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none"
             />
           </div>
@@ -163,11 +249,11 @@ export default function SubjectsPage() {
                 <tr>
                    <td colSpan={3} className="px-6 py-12 text-center text-text-muted">Carregando disciplinas...</td>
                 </tr>
-              ) : subjects.length === 0 ? (
+              ) : filteredSubjects.length === 0 ? (
                 <tr>
-                   <td colSpan={3} className="px-6 py-12 text-center text-text-muted">Nenhuma disciplina cadastrada.</td>
+                   <td colSpan={3} className="px-6 py-12 text-center text-text-muted">Nenhuma disciplina encontrada para "{searchTerm}".</td>
                 </tr>
-              ) : subjects.map((subject) => (
+              ) : filteredSubjects.map((subject) => (
                 <tr key={subject.id} className="hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -179,7 +265,20 @@ export default function SubjectsPage() {
                   </td>
                   <td className="px-6 py-4 text-text-secondary font-medium">{subject.workload}h</td>
                   <td className="px-6 py-4">
-                    <button className="text-primary hover:text-primary-light font-bold text-sm">Editar</button>
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={() => handleEdit(subject)}
+                        className="text-primary hover:text-primary-light font-bold text-sm"
+                      >
+                        Editar
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteClick(subject)}
+                        className="text-error hover:text-error/80 font-bold text-sm"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -1,4 +1,53 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID, IsEmail, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class BankDetailsDto {
+  @IsString()
+  @IsNotEmpty()
+  bankCode: string;
+
+  @IsString()
+  @IsNotEmpty()
+  agency: string;
+
+  @IsString()
+  @IsNotEmpty()
+  account: string;
+
+  @IsString()
+  @IsOptional()
+  pixKey?: string;
+}
+
+class AddressDto {
+  @IsString()
+  @IsNotEmpty()
+  cep: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+
+  @IsString()
+  @IsOptional()
+  complement?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  neighborhood: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+}
 
 export class CreateEmployeeDto {
   @IsString()
@@ -12,6 +61,10 @@ export class CreateEmployeeDto {
   @IsString()
   @IsNotEmpty()
   cpf: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -28,6 +81,16 @@ export class CreateEmployeeDto {
   @IsUUID()
   @IsOptional()
   userId?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BankDetailsDto)
+  bankDetails?: BankDetailsDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address?: AddressDto;
 }
 
 export class UpdateEmployeeDto {
@@ -58,4 +121,21 @@ export class UpdateEmployeeDto {
   @IsUUID()
   @IsOptional()
   userId?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BankDetailsDto)
+  bankDetails?: BankDetailsDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address?: AddressDto;
 }

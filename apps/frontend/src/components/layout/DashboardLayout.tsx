@@ -46,34 +46,34 @@ const DashboardLayout: React.FC = () => {
     {
       label: 'Principal',
       items: [
-        { name: 'Dashboard', icon: LayoutDashboard, href: '/', roles: ['ADMIN', 'MANAGER', 'TEACHER'] },
+        { name: 'Dashboard', icon: LayoutDashboard, href: '/', roles: ['GESTOR'] },
       ]
     },
     {
       label: 'Gestão Acadêmica',
       items: [
-        { name: 'Acadêmico', icon: School, href: '/academic', roles: ['ADMIN', 'MANAGER'] },
-        { name: 'Disciplinas', icon: BookOpen, href: '/subjects', roles: ['ADMIN', 'MANAGER', 'TEACHER'] },
+        { name: 'Acadêmico', icon: School, href: '/academic', roles: ['GESTOR'] },
+        { name: 'Disciplinas', icon: BookOpen, href: '/subjects', roles: ['GESTOR'] },
       ]
     },
     {
       label: 'Administrativo',
       items: [
-        { name: 'Colaboradores', icon: Users, href: '/employees', roles: ['ADMIN', 'MANAGER'] },
-        { name: 'Financeiro', icon: CreditCard, href: '/finance', roles: ['ADMIN', 'MANAGER'] },
+        { name: 'Colaboradores', icon: Users, href: '/employees', roles: ['GESTOR'] },
+        { name: 'Financeiro', icon: CreditCard, href: '/finance', roles: ['GESTOR'] },
       ]
     },
     {
       label: 'Comunicação',
       items: [
-        { name: 'Notificações', icon: Bell, href: '/notifications', roles: ['ADMIN', 'MANAGER', 'TEACHER'] },
+        { name: 'Notificações', icon: Bell, href: '/notifications', roles: ['GESTOR', 'FUNCIONARIO', 'ALUNO'] },
       ]
     }
   ];
 
   const renderNavItems = (items: NavigationItem[]) => {
     return items
-      .filter(item => user && item.roles.includes(user.role))
+      .filter(item => user && user.role && item.roles.includes(user.role))
       .map((item) => (
         <NavLink
           key={item.href}
@@ -193,7 +193,7 @@ const DashboardLayout: React.FC = () => {
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                 <p className="text-[10px] text-text-muted font-black uppercase tracking-[0.15em]">
-                  {user?.role === 'ADMIN' ? 'Painel Administrativo' : 'Gestão de Unidade'}
+                  {user?.role === 'GESTOR' ? 'Painel Administrativo' : 'Gestão de Unidade'}
                 </p>
               </div>
             </div>

@@ -20,7 +20,18 @@ export class SubjectsService {
         throw new ForbiddenException('Only Matrix schools can create subjects');
       }
     }
-    const subject = this.subjectsRepository.create(createSubjectDto);
+
+    const nameUpper = createSubjectDto.name.toUpperCase();
+    
+    const existing = await this.subjectsRepository.findOne({ where: { name: nameUpper } });
+    if (existing) {
+      throw new ForbiddenException(`Subject with name ${nameUpper} already exists`);
+    }
+
+    const subject = this.subjectsRepository.create({
+      ...createSubjectDto,
+      name: nameUpper,
+    });
     return this.subjectsRepository.save(subject);
   }
 
@@ -44,6 +55,16 @@ export class SubjectsService {
         throw new ForbiddenException('Subject must be associated with a Matrix school');
       }
     }
+
+    if (updateSubjectDto.name) {
+      const nameUpper = updateSubjectDto.name.toUpperCase();
+      const existing = await this.subjectsRepository.findOne({ where: { name: nameUpper } });
+      if (existing && existing.id !== id) {
+        throw new ForbiddenException(`Subject with name ${nameUpper} already exists`);
+      }
+      updateSubjectDto.name = nameUpper;
+    }
+
     Object.assign(subject, updateSubjectDto);
     return this.subjectsRepository.save(subject);
   }

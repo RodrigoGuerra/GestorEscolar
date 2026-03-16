@@ -28,7 +28,7 @@ const TenantSelectionPage: React.FC = () => {
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {user.tenants.map((tenant) => (
+          {user.tenants?.map((tenant) => (
             <button
               key={tenant.id}
               onClick={() => handleSelectTenant(tenant)}

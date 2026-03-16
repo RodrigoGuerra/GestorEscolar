@@ -55,7 +55,7 @@ export class TenantInterceptor implements NestInterceptor {
     if (!tenantSchema) {
       // In development/initial setup, we might allow public access to some routes, 
       // but for academia, a tenant is strictly required for data isolation.
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'GESTOR') {
         tenantSchema = 'public';
       } else {
         throw new ForbiddenException('No valid tenant context found');

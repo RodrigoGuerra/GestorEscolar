@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Employee } from './employees/entities/employee.entity';
 import { BankDetails } from './bank-details/entities/bank-details.entity';
+import { Address } from './employees/entities/address.entity';
 import { TimeRecord } from './time-records/entities/time-record.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
@@ -27,14 +28,14 @@ import { TimeRecordsModule } from './time-records/time-records.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [Employee, BankDetails, TimeRecord],
+        entities: [Employee, BankDetails, Address, TimeRecord],
         synchronize: true,
         logging: true,
       }),
     }),
     EmployeesModule,
     TimeRecordsModule,
-    TypeOrmModule.forFeature([Employee, BankDetails, TimeRecord]),
+    TypeOrmModule.forFeature([Employee, BankDetails, Address, TimeRecord]),
   ],
   controllers: [AppController],
   providers: [

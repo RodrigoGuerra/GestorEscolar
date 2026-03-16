@@ -21,6 +21,11 @@ export class SchoolsController {
     return this.schoolsService.findOne(id);
   }
 
+  @Get(':id/metrics')
+  getMetrics(@Param('id', ParseUUIDPipe) id: string) {
+    return this.schoolsService.getSchoolMetrics(id);
+  }
+
   @Patch(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() updateSchoolDto: UpdateSchoolDto) {
     return this.schoolsService.update(id, updateSchoolDto);

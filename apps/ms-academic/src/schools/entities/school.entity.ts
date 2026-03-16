@@ -5,7 +5,7 @@ export class School {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column({ unique: true })
@@ -15,7 +15,7 @@ export class School {
   isMatrix: boolean;
 
   @Column({ name: 'parent_school_id', nullable: true })
-  parentSchoolId: string;
+  parentSchoolId: string | null;
 
   @ManyToOne(() => School, (school) => school.branches)
   @JoinColumn({ name: 'parent_school_id' })

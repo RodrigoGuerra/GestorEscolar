@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { useTenantStore } from '../stores/tenantStore';
 
 const LoginSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -12,11 +13,11 @@ const LoginSuccess: React.FC = () => {
     if (token) {
       // In a real app, we would decode the JWT to get user info or fetch profile
       // For now, we mock the user info based on requirements
-      const mockUser = {
+      const mockUser: any = {
         id: '1',
         email: 'user@example.com',
         name: 'Usuário Teste',
-        role: 'ADMIN',
+        role: 'GESTOR',
         tenants: [
           { id: '1', name: 'Franquia Alpha', schema: 'franchise_alpha' },
           { id: '2', name: 'Franquia Beta', schema: 'franchise_beta' },
@@ -24,7 +25,14 @@ const LoginSuccess: React.FC = () => {
       };
       
       setAuth(token, mockUser);
-      navigate('/select-tenant');
+      
+      // Auto-seleciona o primeiro tenant (Matriz)
+      if (mockUser.tenants && mockUser.tenants.length > 0) {
+        useTenantStore.getState().setCurrentTenant(mockUser.tenants[0]);
+        useAuthStore.getState().setEscolaSelecionada(mockUser.tenants[0].id);
+      }
+      
+      navigate('/');
     } else {
       navigate('/login');
     }
