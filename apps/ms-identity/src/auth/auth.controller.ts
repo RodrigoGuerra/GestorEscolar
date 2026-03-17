@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards, Req, Res, Logger, HttpStatus } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
 
@@ -13,10 +14,13 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
+  // F12: strict throttle on OAuth entry points — max 5 per second, 20 per minute
+  @Throttle({ short: { limit: 5, ttl: 1000 }, long: { limit: 20, ttl: 60000 } })
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req: Request) {}
 
+  @Throttle({ short: { limit: 5, ttl: 1000 }, long: { limit: 20, ttl: 60000 } })
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {

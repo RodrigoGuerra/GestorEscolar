@@ -1,34 +1,46 @@
 services:
+  # ── Infrastructure ────────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
     container_name: schooldb
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: gestor_escolar
-    ports:
-      - "5432:5432"
+      # F14: credentials via env vars — never hardcode in compose
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-gestor_escolar}
+    # F15: no public port — only accessible from gestor-net
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - gestor-net
 
   redis:
     image: redis:7-alpine
     container_name: schoolcache
     restart: always
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
+    networks:
+      - gestor-net
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: schoolbroker
     restart: always
+    # management UI only on localhost
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
+    expose:
+      - "5672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?RABBITMQ_PASS must be set}
+    networks:
+      - gestor-net
 
   prometheus:
     image: prom/prometheus
@@ -37,23 +49,33 @@ services:
     volumes:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
+    networks:
+      - gestor-net
 
   grafana:
     image: grafana/grafana
     container_name: schoolgrafana
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
+    networks:
+      - gestor-net
+
+  # ── Kong API Gateway (only public entry point) ────────────────────────────────
 
   kong:
     image: kong:3.4
     container_name: schoolgateway
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      - ms-identity
+      - ms-academic
+      - ms-hr
+      - ms-finance
+      - ms-notification
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /opt/kong/kong.yml
@@ -63,6 +85,9 @@ services:
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       # F7: restrict admin API to loopback — never expose to external network
       KONG_ADMIN_LISTEN: 127.0.0.1:8001, 127.0.0.1:8444 ssl
+      # F9/F13: passed to kong.yml via env substitution (_transform: true)
+      KONG_JWT_SECRET: ${KONG_JWT_SECRET:?KONG_JWT_SECRET must be set}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     ports:
       - "8000:8000"
       - "8443:8443"
@@ -70,6 +95,94 @@ services:
       - "127.0.0.1:8444:8444"
     volumes:
       - ./infra/kong/kong.yml:/opt/kong/kong.yml
+    networks:
+      - gestor-net
+
+  # ── Microservices (internal only — no public ports) ────────────────────────────
+
+  ms-identity:
+    build:
+      context: .
+      dockerfile: apps/ms-identity/Dockerfile
+    container_name: ms-identity
+    restart: always
+    expose:
+      - "3001"
+    env_file:
+      - apps/ms-identity/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - gestor-net
+
+  ms-academic:
+    build:
+      context: .
+      dockerfile: apps/ms-academic/Dockerfile
+    container_name: ms-academic
+    restart: always
+    expose:
+      - "3002"
+    env_file:
+      - apps/ms-academic/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - gestor-net
+
+  ms-hr:
+    build:
+      context: .
+      dockerfile: apps/ms-hr/Dockerfile
+    container_name: ms-hr
+    restart: always
+    expose:
+      - "3003"
+    env_file:
+      - apps/ms-hr/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - gestor-net
+
+  ms-finance:
+    build:
+      context: .
+      dockerfile: apps/ms-finance/Dockerfile
+    container_name: ms-finance
+    restart: always
+    expose:
+      - "3004"
+    env_file:
+      - apps/ms-finance/.env
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - gestor-net
+
+  ms-notification:
+    build:
+      context: .
+      dockerfile: apps/ms-notification/Dockerfile
+    container_name: ms-notification
+    restart: always
+    expose:
+      - "3005"
+    env_file:
+      - apps/ms-notification/.env
+    depends_on:
+      - rabbitmq
+    networks:
+      - gestor-net
 
 volumes:
   pgdata:
+
+networks:
+  # F15: isolated bridge network — microservices are only reachable from within
+  gestor-net:
+    driver: bridge

@@ -19,7 +19,8 @@ import { TenantsModule } from '../tenants/tenants.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        // F9: issuer must match the key_claim_name (iss) in kong.yml jwt plugin consumer
+        signOptions: { expiresIn: '1d', issuer: 'gestor-escolar-app' },
       }),
     }),
   ],

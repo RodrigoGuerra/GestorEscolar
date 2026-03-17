@@ -1,42 +1,88 @@
 _format_version: "3.0"
 _transform: true
 
+consumers:
+  # F9: Kong JWT consumer — shared secret must match JWT_SECRET used by ms-identity
+  - username: gestor-escolar-app
+    jwt_secrets:
+      - key: gestor-escolar-app
+        algorithm: HS256
+        secret: "${KONG_JWT_SECRET}"
+
 services:
   - name: ms-identity
-    url: http://host.docker.internal:3001
+    url: http://ms-identity:3001
     routes:
-      - name: identity-route
+      - name: identity-public-route
         paths:
-          - /auth
+          - /auth/google
+          - /auth/token
         strip_path: false
+        # Public routes — no JWT required (OAuth callback & token exchange)
+      - name: identity-protected-route
+        paths:
+          - /api/v1/users
+        strip_path: false
+        plugins:
+          # F9: protect provisioning endpoints at the gateway level
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
   - name: ms-academic
-    url: http://host.docker.internal:3002
+    url: http://ms-academic:3002
     routes:
       - name: academic-route
         paths:
           - /academic
         strip_path: false
+        plugins:
+          # F9: validate JWT at gateway before requests reach the microservice
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
   - name: ms-hr
-    url: http://host.docker.internal:3003
+    url: http://ms-hr:3003
     routes:
       - name: hr-route
         paths:
           - /hr
         strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
   - name: ms-finance
-    url: http://host.docker.internal:3004
+    url: http://ms-finance:3004
     routes:
       - name: finance-route
         paths:
           - /finance
         strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
   - name: ms-notification
-    url: http://host.docker.internal:3005
+    url: http://ms-notification:3005
     routes:
       - name: notification-route
         paths:
           - /notifications
         strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
 
 plugins:
   - name: rate-limiting
@@ -46,8 +92,9 @@ plugins:
       policy: local
   - name: cors
     config:
+      # F13: restrict to known frontend origin — never wildcard with credentials: true
       origins:
-        - "*"
+        - "${FRONTEND_URL}"
       methods:
         - GET
         - POST

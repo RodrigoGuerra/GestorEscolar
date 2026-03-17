@@ -7,7 +7,6 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { Observable, from } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
@@ -19,10 +18,8 @@ const VALID_SCHEMA_RE = /^[a-z][a-z0-9_]{0,62}$/;
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
-  constructor(
-    private dataSource: DataSource,
-    private configService: ConfigService,
-  ) {}
+  // F10: DataSource only — Kong JWT plugin already verified the signature upstream
+  constructor(private dataSource: DataSource) {}
 
   async intercept(
     context: ExecutionContext,
@@ -30,7 +27,7 @@ export class TenantInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
 
-    // --- Manual JWT verification to populate request.user ---
+    // F10: decode only (no verify) — Kong has already validated the JWT signature and expiry
     const authHeader = request.headers.authorization;
     if (
       authHeader &&
@@ -38,14 +35,11 @@ export class TenantInterceptor implements NestInterceptor {
       authHeader !== 'Bearer undefined'
     ) {
       const token = authHeader.split(' ')[1];
-      const secret = this.configService.get<string>('JWT_SECRET');
-      try {
-        // F5: pin algorithm to HS256 to prevent algorithm-confusion attacks
-        const decoded = jwt.verify(token, secret!, { algorithms: ['HS256'] }) as any;
-        request.user = decoded;
-      } catch (error) {
-        throw new UnauthorizedException('Invalid or expired token');
+      const decoded = jwt.decode(token) as any;
+      if (!decoded) {
+        throw new UnauthorizedException('Malformed token');
       }
+      request.user = decoded;
     }
 
     const user = request.user;
@@ -63,7 +57,6 @@ export class TenantInterceptor implements NestInterceptor {
     let tenantSchema: string | undefined;
 
     if (headerTenant && headerTenant !== 'undefined' && headerTenant !== '') {
-      // Allow 'public' schema explicitly for fetching shared data like schools if user has right global role
       if (headerTenant === 'public') {
         const userRole = user.role?.toLowerCase();
         const hasAuthorizedTenantRole = authorizedTenants.some((t: any) =>
@@ -81,7 +74,6 @@ export class TenantInterceptor implements NestInterceptor {
           throw new ForbiddenException(`Access to tenant public is not authorized`);
         }
       } else {
-        // Validate requested tenant against authorized list in JWT
         const authorized = authorizedTenants.find(
           (t: any) => t.schema === headerTenant,
         );
@@ -97,7 +89,6 @@ export class TenantInterceptor implements NestInterceptor {
         tenantSchema = headerTenant;
       }
     } else {
-      // Fallback to first authorized tenant if none specified
       tenantSchema = authorizedTenants[0]?.schema;
     }
 

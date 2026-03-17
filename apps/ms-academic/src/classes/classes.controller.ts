@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { ClassesService } from './classes.service';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR, UserRole.TEACHER)
 @Controller('academic/classes')
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}

@@ -11,7 +11,11 @@ import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+// F11: GESTOR, ADMIN and MANAGER manage students; TEACHER and STUDENT can read
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR, UserRole.TEACHER, UserRole.STUDENT)
 @ApiTags('students')
 @Controller('academic/students')
 export class StudentsController {

@@ -1,7 +1,10 @@
 import { Controller, Get, Post, Body, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/transaction.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR)
 @Controller('finance/transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}

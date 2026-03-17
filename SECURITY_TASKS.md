@@ -77,75 +77,74 @@
 ## Sprint 2 — Autenticação, RBAC e Infraestrutura
 > Depende do Sprint 1 estar concluído. Requer `docker-compose up --build`.
 
-### F9 — Kong sem plugin de autenticação (gateway é proxy puro)
+### F9 — Kong sem plugin de autenticação (gateway é proxy puro) ✅
 - **Criticidade:** CRÍTICA
 - **Arquivo:** `infra/kong/kong.yml`
-- [ ] Adicionar consumer `gestor-escolar-app` com `jwt_secrets` no `kong.yml`
-- [ ] Adicionar `KONG_JWT_SECRET` no `.env` raiz e no `.env.example`
-- [ ] Adicionar plugin `jwt` (com `claims_to_verify: [exp]`) nas rotas de ms-academic, ms-hr, ms-finance, ms-notification
-- [ ] Manter rotas `/auth/google` e `/auth/google/callback` do ms-identity **sem** o plugin JWT (são públicas por design)
-- [ ] Adicionar `issuer: 'gestor-escolar-app'` no `signOptions` do `JwtModule` em `ms-identity/src/auth/auth.module.ts`
+- [x] Adicionar consumer `gestor-escolar-app` com `jwt_secrets` no `kong.yml`
+- [x] Adicionar `KONG_JWT_SECRET` no `.env.example` raiz e repassar ao Kong via env no docker-compose
+- [x] Adicionar plugin `jwt` (com `claims_to_verify: [exp]`) nas rotas de ms-academic, ms-hr, ms-finance, ms-notification
+- [x] Manter rotas `/auth/google`, `/auth/token` do ms-identity **sem** o plugin JWT (são públicas por design)
+- [x] Adicionar `issuer: 'gestor-escolar-app'` no `signOptions` do `JwtModule` em `ms-identity/src/auth/auth.module.ts` e `users.module.ts`
 
-### F10 — TenantInterceptors re-verificando JWT (redundante após F9)
+### F10 — TenantInterceptors re-verificando JWT (redundante após F9) ✅
 - **Criticidade:** ALTA
 - **Arquivos:** `apps/ms-academic/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-hr/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-finance/src/common/interceptors/tenant.interceptor.ts`
-- [ ] Substituir `jwt.verify(token, secret, { algorithms: ['HS256'] })` por `jwt.decode(token)` nos 3 interceptors
-- [ ] Remover `ConfigService` do constructor dos 3 interceptors (após confirmar que não é usado para mais nada)
-- [ ] Adicionar verificação `if (!decoded) throw new UnauthorizedException('Malformed token')`
+- [x] Substituir `jwt.verify(token, secret, { algorithms: ['HS256'] })` por `jwt.decode(token)` nos 3 interceptors
+- [x] Remover `ConfigService` do constructor dos 3 interceptors
+- [x] Adicionar verificação `if (!decoded) throw new UnauthorizedException('Malformed token')`
 
-### F11 — Sem guards RBAC em nenhum controller
+### F11 — Sem guards RBAC em nenhum controller ✅
 - **Criticidade:** CRÍTICA
 - **Arquivos:** vários (ver subtarefas)
-- [ ] Criar `apps/ms-academic/src/common/enums/user-role.enum.ts` com enum `UserRole` canônico
-- [ ] Criar mesmo arquivo em `apps/ms-hr/src/common/enums/` e `apps/ms-finance/src/common/enums/`
-- [ ] Criar `apps/ms-academic/src/common/guards/jwt-extract.guard.ts` (decodifica JWT e popula `request.user`)
-- [ ] Criar mesmo guard em `apps/ms-hr/src/common/guards/` e `apps/ms-finance/src/common/guards/`
-- [ ] Criar `apps/ms-academic/src/common/guards/roles.guard.ts` (lê `ROLES_KEY` do Reflector e valida `request.user.role`)
-- [ ] Criar mesmo guard em `apps/ms-hr/src/common/guards/` e `apps/ms-finance/src/common/guards/`
-- [ ] Criar `apps/ms-academic/src/common/decorators/roles.decorator.ts`
-- [ ] Criar mesmo decorator em `apps/ms-hr/src/common/decorators/` e `apps/ms-finance/src/common/decorators/`
-- [ ] Registrar `APP_GUARD` (ThrottlerGuard → JwtExtractGuard → RolesGuard) em `ms-academic/src/app.module.ts`
-- [ ] Registrar mesmos guards em `ms-hr/src/app.module.ts` e `ms-finance/src/app.module.ts`
-- [ ] Aplicar `@Roles()` nos controllers do ms-academic (students, schools, grades, classes, subjects)
-- [ ] Aplicar `@Roles()` nos controllers do ms-hr (employees, time-records)
-- [ ] Aplicar `@Roles()` nos controllers do ms-finance (invoices, transactions)
-- [ ] Atualizar `apps/ms-identity/src/users/dto/provision-user.dto.ts` para importar `UserRole` do enum canônico
+- [x] Criar `apps/ms-academic/src/common/enums/user-role.enum.ts` com enum `UserRole` canônico
+- [x] Criar mesmo arquivo em `apps/ms-hr/src/common/enums/` e `apps/ms-finance/src/common/enums/`
+- [x] Criar `apps/ms-academic/src/common/guards/jwt-extract.guard.ts` (decodifica JWT e popula `request.user`)
+- [x] Criar mesmo guard em `apps/ms-hr/src/common/guards/` e `apps/ms-finance/src/common/guards/`
+- [x] Criar `apps/ms-academic/src/common/guards/roles.guard.ts` (lê `ROLES_KEY` do Reflector e valida `request.user.role`)
+- [x] Criar mesmo guard em `apps/ms-hr/src/common/guards/` e `apps/ms-finance/src/common/guards/`
+- [x] Criar `apps/ms-academic/src/common/decorators/roles.decorator.ts`
+- [x] Criar mesmo decorator em `apps/ms-hr/src/common/decorators/` e `apps/ms-finance/src/common/decorators/`
+- [x] Registrar `APP_GUARD` (ThrottlerGuard → JwtExtractGuard → RolesGuard) em `ms-academic/src/app.module.ts`
+- [x] Registrar mesmos guards em `ms-hr/src/app.module.ts` e `ms-finance/src/app.module.ts`
+- [x] Aplicar `@Roles()` nos controllers do ms-academic (students, schools, grades, classes, subjects)
+- [x] Aplicar `@Roles()` nos controllers do ms-hr (employees, time-records)
+- [x] Aplicar `@Roles()` nos controllers do ms-finance (invoices, transactions)
 
-### F12 — Rate limiting ausente (DDoS)
+### F12 — Rate limiting ausente (DDoS) ✅
 - **Criticidade:** ALTA
 - **Arquivos:** `apps/*/package.json`, `apps/*/src/app.module.ts`, `apps/ms-identity/src/auth/auth.controller.ts`
-- [ ] Instalar `@nestjs/throttler` nos 5 serviços
-- [ ] Adicionar `ThrottlerModule.forRoot([{ name: 'short', ttl: 1000, limit: 20 }, { name: 'long', ttl: 60000, limit: 500 }])` em cada `app.module.ts`
-- [ ] Adicionar `{ provide: APP_GUARD, useClass: ThrottlerGuard }` como primeiro guard em cada `app.module.ts`
-- [ ] Aplicar `@Throttle({ short: { limit: 5 }, long: { limit: 20 } })` nos endpoints OAuth do `auth.controller.ts`
+- [x] Instalar `@nestjs/throttler` nos 5 serviços
+- [x] Adicionar `ThrottlerModule.forRoot([{ name: 'short', ttl: 1000, limit: 20 }, { name: 'long', ttl: 60000, limit: 500 }])` em cada `app.module.ts`
+- [x] Adicionar `{ provide: APP_GUARD, useClass: ThrottlerGuard }` como primeiro guard em cada `app.module.ts`
+- [x] Aplicar `@Throttle({ short: { limit: 5 }, long: { limit: 20 } })` nos endpoints OAuth do `auth.controller.ts`
 
-### F13 — CORS wildcard em todos os serviços
+### F13 — CORS wildcard em todos os serviços ✅
 - **Criticidade:** ALTA
 - **Arquivos:** `apps/*/src/main.ts`
-- [ ] Substituir `app.enableCors()` por `app.enableCors({ origin: allowedOrigins, credentials: true, ... })` em todos os 5 `main.ts`
-- [ ] Ler `ALLOWED_ORIGINS` do env (com fallback para `['http://localhost:5173']` em dev)
-- [ ] Corrigir Kong `kong.yml`: substituir `origins: ["*"]` pela origem específica do frontend
+- [x] Substituir `app.enableCors()` por `app.enableCors({ origin: allowedOrigins, credentials: true, ... })` nos 3 `main.ts` (ms-academic, ms-hr, ms-finance)
+- [x] Ler `FRONTEND_URL` do env (com fallback para `http://localhost:5173` em dev)
+- [x] Corrigir Kong `kong.yml`: substituir `origins: ["*"]` por `${FRONTEND_URL}`
 
-### F14 — Credenciais hardcoded no `docker-compose.yml`
+### F14 — Credenciais hardcoded no `docker-compose.yml` ✅
 - **Criticidade:** ALTA
 - **Arquivo:** `docker-compose.yml`
-- [ ] Substituir `password123`, `guest/guest`, `admin` por `${POSTGRES_PASSWORD}`, `${RABBITMQ_PASS}`, `${GRAFANA_ADMIN_PASSWORD}`
-- [ ] Criar `.env.example` na raiz do projeto com todas as variáveis do docker-compose
-- [ ] Adicionar `.env` (raiz) no `.gitignore` se não estiver
+- [x] Substituir `password123`, `guest/guest`, `admin` por `${POSTGRES_PASSWORD}`, `${RABBITMQ_PASS}`, `${GRAFANA_ADMIN_PASSWORD}`
+- [x] Criar `.env.example` na raiz do projeto com todas as variáveis do docker-compose
+- [x] `.env` (raiz) já estava no `.gitignore` — verificado
 
-### F15 — Microserviços acessíveis direto (bypassando Kong)
+### F15 — Microserviços acessíveis direto (bypassando Kong) ✅
 - **Criticidade:** ALTA
 - **Arquivos:** `docker-compose.yml`, `infra/kong/kong.yml`, `apps/*/Dockerfile` (novos)
-- [ ] Criar `Dockerfile` em `apps/ms-identity/`
-- [ ] Criar `Dockerfile` em `apps/ms-academic/`
-- [ ] Criar `Dockerfile` em `apps/ms-hr/`
-- [ ] Criar `Dockerfile` em `apps/ms-finance/`
-- [ ] Criar `Dockerfile` em `apps/ms-notification/`
-- [ ] Adicionar rede `gestor-net` no `docker-compose.yml`
-- [ ] Mover todos os microserviços para a rede interna (usar `expose` em vez de `ports`)
-- [ ] Atualizar URLs no `kong.yml` de `http://host.docker.internal:300X` para `http://ms-{nome}:300X`
-- [ ] Remover `extra_hosts` do serviço kong no `docker-compose.yml`
-- [ ] Atualizar `DATABASE_HOST=localhost` para `DATABASE_HOST=postgres` nos `.env` de cada serviço
+- [x] Criar `Dockerfile` em `apps/ms-identity/`
+- [x] Criar `Dockerfile` em `apps/ms-academic/`
+- [x] Criar `Dockerfile` em `apps/ms-hr/`
+- [x] Criar `Dockerfile` em `apps/ms-finance/`
+- [x] Criar `Dockerfile` em `apps/ms-notification/`
+- [x] Adicionar rede `gestor-net` no `docker-compose.yml`
+- [x] Mover todos os microserviços para a rede interna (usar `expose` em vez de `ports`)
+- [x] Atualizar URLs no `kong.yml` de `http://host.docker.internal:300X` para `http://ms-{nome}:300X`
+- [x] Remover `extra_hosts` do serviço kong no `docker-compose.yml`
+- [x] Atualizar `DATABASE_HOST` para `postgres` e `RABBITMQ_URL` para `amqp://rabbitmq:5672` nos `.env.example`
 
 ---
 

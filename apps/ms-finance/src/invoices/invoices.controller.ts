@@ -1,7 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+// F11: GESTOR, ADMIN and MANAGER manage finances; STUDENT can read own invoices
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR, UserRole.STUDENT)
 @Controller('finance/invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}

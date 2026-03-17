@@ -37,7 +37,7 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '1d', issuer: 'gestor-escolar-app' },
       }),
     }),
   ],
