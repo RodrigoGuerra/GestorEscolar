@@ -13,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { Response, Request } from 'express';
+import type { Response, Request } from 'express';
 
 const REFRESH_COOKIE = 'refresh_token';
 const ACCESS_COOKIE = 'auth_token';
