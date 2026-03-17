@@ -14,7 +14,14 @@ export class RefreshTokenService implements OnModuleDestroy {
     this.redis = new Redis({
       host: this.configService.get<string>('REDIS_HOST') || 'redis',
       port: this.configService.get<number>('REDIS_PORT') || 6379,
+      // Retry with backoff so startup race vs Redis container doesn't crash the process
+      retryStrategy: (times) => Math.min(times * 200, 5000),
+      maxRetriesPerRequest: null,
+      enableOfflineQueue: true,
+      lazyConnect: false,
     });
+    // Prevent unhandled 'error' events from crashing the process during startup
+    this.redis.on('error', () => {});
   }
 
   /** Generate a cryptographically random opaque token, store payload in Redis, return the token. */
