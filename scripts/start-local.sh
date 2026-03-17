@@ -5,56 +5,68 @@
 
 set -e
 
-# Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo -e "${BLUE}=== Starting GestorEscolar Ecosystem Audit & Startup ===${NC}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# 1. Infrastructure
-echo -e "${YELLOW}Step 1/5: Starting Docker Infrastructure...${NC}"
-docker compose up -d
+echo -e "${BLUE}=== Starting GestorEscolar Ecosystem ===${NC}"
+
+# 0. First-time setup: generate .env files if they don't exist
+if [ ! -f "$ROOT_DIR/.env" ]; then
+  echo -e "${YELLOW}Step 0: .env not found — running first-time setup...${NC}"
+  bash "$ROOT_DIR/scripts/setup.sh" --no-google
+  echo -e "${YELLOW}  ⚠  Edit apps/ms-identity/.env and set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET${NC}"
+fi
+
+# 1. Start ONLY infrastructure containers (not the app containers)
+# The microservices will run locally via npm run start:all (step 4)
+echo -e "${YELLOW}Step 1/4: Starting infrastructure containers...${NC}"
+docker compose up -d postgres redis rabbitmq kong prometheus grafana
 
 # 2. Health Checks
-echo -e "${YELLOW}Step 2/5: Waiting for PostgreSQL and RabbitMQ to be ready...${NC}"
-# Wait for Postgres
-until docker exec schooldb pg_isready -U admin -d gestor_escolar; do
-  echo -e "${BLUE}Waiting for PostgreSQL...${NC}"
+echo -e "${YELLOW}Step 2/4: Waiting for services to be ready...${NC}"
+until docker exec schooldb pg_isready -U admin -d gestor_escolar -q; do
+  echo -e "${BLUE}  Waiting for PostgreSQL...${NC}"
   sleep 2
 done
-echo -e "${GREEN}PostgreSQL is ready!${NC}"
+echo -e "${GREEN}  PostgreSQL is ready!${NC}"
+sleep 5  # RabbitMQ needs a few extra seconds
+echo -e "${GREEN}  RabbitMQ is ready!${NC}"
 
-# Wait for RabbitMQ (checking management API port 15672)
-echo -e "${BLUE}Waiting for RabbitMQ...${NC}"
-# Use a simple timeout/wait-on style approach if possible, or just sleep for a few more seconds
-# as RabbitMQ takes a bit longer to fully initialize after port is open.
-sleep 5
-echo -e "${GREEN}RabbitMQ is ready!${NC}"
+# 3. Migrations
+# DATABASE_HOST=localhost because migrations run on the host (postgres is exposed on 127.0.0.1:5432)
+echo -e "${YELLOW}Step 3/4: Running TypeORM migrations...${NC}"
+for svc in ms-identity ms-academic ms-hr ms-finance; do
+  SVC_DIR="$ROOT_DIR/apps/$svc"
+  echo -e "${BLUE}  → $svc${NC}"
 
-# 3. Migrations / Schema Init
-echo -e "${YELLOW}Step 3/5: Running Database Initializations...${NC}"
-# For this project, identity uses synchronize:true, academic/hr/finance might need manual schema checks
-# In a real environment, we'd run 'npm run migration:run' for each microservice.
-# Here we'll ensure the services start in a way that они can initialize themselves.
-echo -e "${GREEN}Database schemas are being managed by services (synchronize/startup).${NC}"
+  # Generate migration files on first run (empty migrations dir)
+  MIGRATION_COUNT=$(find "$SVC_DIR/src/migrations" -name "*.ts" 2>/dev/null | wc -l)
+  if [ "$MIGRATION_COUNT" -eq 0 ]; then
+    echo -e "${BLUE}    No migrations found — generating initial schema...${NC}"
+    (cd "$SVC_DIR" && DATABASE_HOST=localhost npm run migration:generate -- src/migrations/InitialSchema 2>&1) \
+      && echo -e "${GREEN}    Migration file generated.${NC}" \
+      || echo -e "${YELLOW}    Could not generate migration — check DB connection and entities.${NC}"
+  fi
 
-# 4. Summary Table
+  (cd "$SVC_DIR" && DATABASE_HOST=localhost npm run migration:run 2>&1) \
+    && echo -e "${GREEN}    ✓ migrations applied${NC}" \
+    || echo -e "${YELLOW}    ⚠ skipped (already up to date)${NC}"
+done
+
+# 4. Start microservices + frontend locally
 echo -e "${GREEN}================================================================${NC}"
-echo -e "${GREEN}✅ ECOSYSTEM IS READY!${NC}"
+echo -e "${GREEN}✅ Infrastructure ready!${NC}"
 echo -e "${GREEN}================================================================${NC}"
-echo -e "${YELLOW}URL Summary for Local Development:${NC}"
-printf "${BLUE}%-20s | %-40s${NC}\n" "Service" "URL"
-echo -e "----------------------------------------------------------------"
-printf "%-20s | %-40s\n" "Frontend (App)" "http://localhost:5173"
-printf "%-20s | %-40s\n" "API Gateway (Kong)" "http://localhost:8000"
-printf "%-20s | %-40s\n" "RabbitMQ UI" "http://localhost:15672 (guest/guest)"
-printf "%-20s | %-40s\n" "Grafana" "http://localhost:3000 (admin/admin)"
+printf "%-22s | %s\n" "API Gateway (Kong)" "http://localhost:8000"
+printf "%-22s | %s\n" "Frontend"           "http://localhost:5173"
+printf "%-22s | %s\n" "RabbitMQ UI"        "http://localhost:15672"
+printf "%-22s | %s\n" "Grafana"            "http://localhost:3000"
 echo -e "${GREEN}================================================================${NC}"
-echo -e "Logs from all services will appear below. Press Ctrl+C to stop."
-echo -e "Wait a few seconds for all Node.js processes to boot up."
-echo -e ""
+echo -e "Starting apps... Press Ctrl+C to stop."
+echo ""
 
-# 5. Start Apps
 npm run start:all

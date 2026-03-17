@@ -7,8 +7,12 @@ import { School } from './schools/entities/school.entity';
 import { Subject } from './subjects/entities/subject.entity';
 import { Class } from './classes/entities/class.entity';
 import { Grade } from './grades/entities/grade.entity';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+// entities still referenced in TypeOrmModule.forRootAsync entities array
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
+import { JwtExtractGuard } from './common/guards/jwt-extract.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 
 import { SchoolsModule } from './schools/schools.module';
 import { SubjectsModule } from './subjects/subjects.module';
@@ -34,7 +38,8 @@ import { Student } from './students/entities/student.entity';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [School, Subject, Class, Grade, Student],
-        synchronize: true, // Enabled for development to ensure tables exist
+        // F20: never auto-sync in production — run migrations instead
+        synchronize: false,
         logging: true,
       }),
     }),
@@ -43,15 +48,23 @@ import { Student } from './students/entities/student.entity';
     ClassesModule,
     GradesModule,
     StudentsModule,
-    TypeOrmModule.forFeature([School, Subject, Class, Grade, Student]),
+    // F16: TypeOrmModule.forFeature() removed — services now use TenantRepositoryService
+    // F12: rate limiting — 20 req/s short burst, 500 req/min sustained
+    ThrottlerModule.forRoot([
+      { name: 'short', ttl: 1000, limit: 20 },
+      { name: 'long', ttl: 60000, limit: 500 },
+    ]),
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TenantInterceptor,
-    },
+    // F12: ThrottlerGuard runs first
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // F11: guard chain — JwtExtractGuard runs first to populate request.user,
+    // then RolesGuard checks @Roles() metadata; interceptor runs after guards
+    { provide: APP_GUARD, useClass: JwtExtractGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_INTERCEPTOR, useClass: TenantInterceptor },
   ],
 })
 export class AppModule {}

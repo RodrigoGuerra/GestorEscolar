@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { CreateSubjectDto, UpdateSubjectDto } from './dto/subject.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR, UserRole.TEACHER)
 @Controller('academic/subjects')
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}

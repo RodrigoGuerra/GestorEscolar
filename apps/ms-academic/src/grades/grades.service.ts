@@ -1,27 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Grade } from './entities/grade.entity';
 import { CreateGradeDto, UpdateGradeDto } from './dto/grade.dto';
+import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
 
 @Injectable()
 export class GradesService {
-  constructor(
-    @InjectRepository(Grade)
-    private readonly repository: Repository<Grade>,
-  ) {}
+  constructor(private readonly tenantRepo: TenantRepositoryService) {}
 
   create(createGradeDto: CreateGradeDto) {
-    const entity = this.repository.create(createGradeDto);
-    return this.repository.save(entity);
+    const repo = this.tenantRepo.getRepository(Grade);
+    return repo.save(repo.create(createGradeDto));
   }
 
   findAll() {
-    return this.repository.find({ relations: ['subject'] });
+    return this.tenantRepo.getRepository(Grade).find({ relations: ['subject'] });
   }
 
   async findOne(id: string) {
-    const entity = await this.repository.findOne({
+    const entity = await this.tenantRepo.getRepository(Grade).findOne({
       where: { id },
       relations: ['subject'],
     });
@@ -30,14 +26,15 @@ export class GradesService {
   }
 
   async update(id: string, updateGradeDto: UpdateGradeDto) {
+    const repo = this.tenantRepo.getRepository(Grade);
     await this.findOne(id);
-    await this.repository.update(id, updateGradeDto);
+    await repo.update(id, updateGradeDto);
     return this.findOne(id);
   }
 
   async remove(id: string) {
     const entity = await this.findOne(id);
-    await this.repository.remove(entity);
+    await this.tenantRepo.getRepository(Grade).remove(entity);
     return { deleted: true };
   }
 }

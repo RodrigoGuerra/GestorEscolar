@@ -1,32 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dto/transaction.dto';
+import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
 
 @Injectable()
 export class TransactionsService {
-  constructor(
-    @InjectRepository(Transaction)
-    private readonly repository: Repository<Transaction>,
-  ) {}
+  constructor(private readonly tenantRepo: TenantRepositoryService) {}
 
   create(createTransactionDto: CreateTransactionDto) {
-    const entity = this.repository.create(createTransactionDto);
-    return this.repository.save(entity);
+    const repo = this.tenantRepo.getRepository(Transaction);
+    return repo.save(repo.create(createTransactionDto));
   }
 
   findAll() {
-    return this.repository.find({ order: { createdAt: 'DESC' } });
+    return this.tenantRepo
+      .getRepository(Transaction)
+      .find({ order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: string) {
-    const entity = await this.repository.findOne({ where: { id } });
+    const entity = await this.tenantRepo
+      .getRepository(Transaction)
+      .findOne({ where: { id } });
     if (!entity) throw new NotFoundException(`Transaction with ID ${id} not found`);
     return entity;
   }
 
-  async findBySchool(schoolId: string) {
-    return this.repository.find({ where: { schoolId }, order: { createdAt: 'DESC' } });
+  findBySchool(schoolId: string) {
+    return this.tenantRepo
+      .getRepository(Transaction)
+      .find({ where: { schoolId }, order: { createdAt: 'DESC' } });
   }
 }

@@ -1,7 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto, UpdateEmployeeDto } from './dto/employee.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+// F11: only GESTOR, ADMIN and MANAGER can manage HR records
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR)
 @Controller('hr/employees')
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}

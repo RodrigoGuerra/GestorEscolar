@@ -1,7 +1,10 @@
-import { Controller, Post, Body, Get, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { ProvisionUserDto } from './dto/provision-user.dto';
 
+// F2: protect all endpoints — only authenticated users can provision or lookup users
+@UseGuards(AuthGuard('jwt'))
 @Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

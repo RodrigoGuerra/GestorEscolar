@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { SchoolsService } from './schools.service';
 import { CreateSchoolDto, UpdateSchoolDto } from './dto/school.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+import { UserRole } from '../common/enums/user-role.enum';
 
+// F11: only GESTOR, ADMIN and MANAGER can manage school records
+@Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR)
 @Controller('academic/schools')
 export class SchoolsController {
   constructor(private readonly schoolsService: SchoolsService) {}

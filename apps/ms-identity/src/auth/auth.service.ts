@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
+import { RefreshTokenService } from './refresh-token.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,8 @@ export class AuthService {
     @InjectRepository(FranchiseTenant)
     private tenantsRepository: Repository<FranchiseTenant>,
     private jwtService: JwtService,
+    // F24: refresh token support
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   async validateOAuthUser(profile: any): Promise<any> {
@@ -37,10 +40,10 @@ export class AuthService {
 
     const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
 
-    const payload = {
+    const jwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role, // In identity, user has a role, but mappings also have roles. The PRD mentions both.
+      role: user.role,
       tenants: tenants.map(t => ({
         schema: t.franchiseSchema,
         schoolId: t.schoolId,
@@ -48,10 +51,27 @@ export class AuthService {
       })),
     };
 
-    return {
-      accessToken: this.jwtService.sign(payload),
-      user,
-    };
+    // F24: issue short-lived access token (15m) + long-lived opaque refresh token (30d in Redis)
+    const accessToken = this.jwtService.sign(jwtPayload);
+    const refreshToken = await this.refreshTokenService.create(jwtPayload);
+
+    return { accessToken, refreshToken, user };
+  }
+
+  /** F24/I2: validate and atomically consume the refresh token (GETDEL), then issue new pair. */
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    // consume() is atomic — closes TOCTOU window vs. validate()+revoke() sequence
+    const payload = await this.refreshTokenService.consume(refreshToken);
+    const newRefreshToken = await this.refreshTokenService.create(payload);
+    const newAccessToken = this.jwtService.sign(payload);
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+  }
+
+  /** F24: revoke the refresh token (logout). */
+  async revokeRefreshToken(refreshToken: string): Promise<void> {
+    await this.refreshTokenService.revoke(refreshToken);
   }
 
   async login(user: any) {

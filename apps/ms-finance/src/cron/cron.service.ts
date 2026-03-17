@@ -3,7 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Invoice, InvoiceStatus } from '../invoices/entities/invoice.entity';
-import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ClientProxy, ClientProxyFactory, RmqRecord, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -22,7 +22,8 @@ export class CronService {
         urls: [this.configService.get<string>('RABBITMQ_URL')!],
         queue: 'school_events_queue',
         queueOptions: {
-          durable: false,
+          // F21: durable queue survives broker restart — messages not lost
+          durable: true,
         },
       },
     });
@@ -52,13 +53,21 @@ export class CronService {
       
       this.logger.log(`Invoice ${invoice.id} marked as OVERDUE. Emitting event...`);
       
-      this.client.emit('student.overdue', {
-        invoiceId: invoice.id,
-        studentId: invoice.studentId,
-        schoolId: invoice.schoolId,
-        amount: invoice.amount,
-        dueDate: invoice.dueDate,
-      });
+      // I3/F21: use RmqRecord so persistent:true is set as an actual AMQP property
+      // (durable queue + persistent messages = survives broker restart)
+      this.client.emit(
+        'student.overdue',
+        new RmqRecord(
+          {
+            invoiceId: invoice.id,
+            studentId: invoice.studentId,
+            schoolId: invoice.schoolId,
+            amount: invoice.amount,
+            dueDate: invoice.dueDate,
+          },
+          { persistent: true },
+        ),
+      );
     }
 
     this.logger.log(`Updated ${overdueInvoices.length} invoices to OVERDUE.`);
