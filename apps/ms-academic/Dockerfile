@@ -19,7 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/apps/ms-academic/dist ./dist
-COPY --from=builder /app/apps/ms-academic/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/ms-academic/package.json ./package.json
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

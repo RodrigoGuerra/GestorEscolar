@@ -19,7 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/apps/ms-hr/dist ./dist
-COPY --from=builder /app/apps/ms-hr/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/ms-hr/package.json ./package.json
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
