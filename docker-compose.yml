@@ -10,9 +10,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-gestor_escolar}
-    # F15: no public port — only accessible from gestor-net
-    expose:
-      - "5432"
+    # Exposed only to localhost so TypeORM CLI can run migrations from the host
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -22,8 +22,8 @@ services:
     image: redis:7-alpine
     container_name: schoolcache
     restart: always
-    expose:
-      - "6379"
+    ports:
+      - "127.0.0.1:6379:6379"
     networks:
       - gestor-net
 
@@ -31,11 +31,9 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: schoolbroker
     restart: always
-    # management UI only on localhost
     ports:
       - "127.0.0.1:15672:15672"
-    expose:
-      - "5672"
+      - "127.0.0.1:5672:5672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?RABBITMQ_PASS must be set}
