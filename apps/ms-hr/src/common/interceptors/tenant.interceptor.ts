@@ -1,9 +1,21 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  ForbiddenException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { Observable, from } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
+
+/** Allowed PostgreSQL schema names: lowercase letters, digits, underscores.
+ *  Rejects anything that could escape a double-quoted identifier. */
+const VALID_SCHEMA_RE = /^[a-z][a-z0-9_]{0,62}$/;
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
@@ -21,7 +33,8 @@ export class TenantInterceptor implements NestInterceptor {
       const token = authHeader.split(' ')[1];
       const secret = this.configService.get<string>('JWT_SECRET');
       try {
-        const decoded = jwt.verify(token, secret!) as any;
+        // F5: pin algorithm to HS256 to prevent algorithm-confusion attacks
+        const decoded = jwt.verify(token, secret!, { algorithms: ['HS256'] }) as any;
         request.user = decoded;
       } catch (error) {
         throw new UnauthorizedException('Invalid or expired token');
@@ -36,14 +49,14 @@ export class TenantInterceptor implements NestInterceptor {
 
     const authorizedTenants = user.tenants || [];
     const headerTenant = request.headers['x-tenant-id'];
-    
+
     let tenantSchema: string | undefined;
 
     if (headerTenant && headerTenant !== 'undefined' && headerTenant !== '') {
       if (headerTenant === 'public') {
         const userRole = user.role?.toLowerCase();
-        const hasAuthorizedTenantRole = authorizedTenants.some((t: any) => 
-          ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase())
+        const hasAuthorizedTenantRole = authorizedTenants.some((t: any) =>
+          ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase()),
         );
 
         if (userRole === 'admin' || userRole === 'gestor' || userRole === 'manager' || hasAuthorizedTenantRole) {
@@ -64,8 +77,8 @@ export class TenantInterceptor implements NestInterceptor {
 
     if (!tenantSchema) {
       const userRole = user.role?.toLowerCase();
-      const hasAuthorizedTenantRole = authorizedTenants.some((t: any) => 
-        ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase())
+      const hasAuthorizedTenantRole = authorizedTenants.some((t: any) =>
+        ['admin', 'owner', 'gestor'].includes(t.role?.toLowerCase()),
       );
 
       if (userRole === 'admin' || userRole === 'gestor' || userRole === 'manager' || hasAuthorizedTenantRole) {
@@ -75,18 +88,26 @@ export class TenantInterceptor implements NestInterceptor {
       }
     }
 
+    // F1: validate schema name before interpolating into SQL to prevent injection
+    if (tenantSchema !== 'public' && !VALID_SCHEMA_RE.test(tenantSchema)) {
+      throw new BadRequestException(
+        `Invalid tenant schema identifier: "${tenantSchema}"`,
+      );
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
-    
+
     return from(queryRunner.connect()).pipe(
       switchMap(async () => {
         await queryRunner.query(`SET search_path TO "${tenantSchema}", public`);
         request['tenantSchema'] = tenantSchema;
+        request['queryRunner'] = queryRunner;
         return next.handle();
       }),
       switchMap(obs => obs),
       finalize(async () => {
         await queryRunner.release();
-      })
+      }),
     );
   }
 }

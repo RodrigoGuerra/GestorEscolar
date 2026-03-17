@@ -19,6 +19,11 @@ out
 .env.test.local
 .env.production.local
 
+# service .env files — never commit real secrets
+apps/**/.env
+apps/**/.env.local
+apps/**/.env.production
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

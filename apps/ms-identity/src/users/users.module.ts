@@ -2,10 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
+import { JwtStrategy } from '../auth/strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -27,9 +30,23 @@ import { UsersController } from './users.controller';
         }),
       },
     ]),
+    // F2: register Passport + JWT here (instead of importing AuthModule) to avoid circular dependency
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1d' },
+      }),
+    }),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [
+    UsersService,
+    // F2: JwtStrategy must be in providers so AuthGuard('jwt') can resolve it
+    JwtStrategy,
+  ],
   exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule {}

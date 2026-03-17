@@ -19,7 +19,7 @@ const PainelEscolaLayout: React.FC = () => {
   // Definir abas baseado na role (Seção 5 do PRD)
   const tabs = {
     GESTOR: [
-      { id: 'dashboard', label: 'Visão Geral', icon: BarChart2 },
+      { id: 'painel', label: 'Visão Geral', icon: BarChart2 },
       { id: 'alunos', label: 'Gerenciar Alunos', icon: Users },
       { id: 'turmas', label: 'Montar Turmas', icon: Layout },
       { id: 'cronograma', label: 'Cronograma', icon: Calendar },

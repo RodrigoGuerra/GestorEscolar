@@ -9,66 +9,68 @@
 ## Sprint 1 — Correções Cirúrgicas
 > Sem mudança arquitetural. Baixo risco. Pode ser deployado de forma independente.
 
-### F1 — SQL Injection via `x-tenant-id` no `SET search_path`
+### F1 — SQL Injection via `x-tenant-id` no `SET search_path` ✅
 - **Criticidade:** CRÍTICA
 - **Arquivos:** `apps/ms-academic/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-hr/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-finance/src/common/interceptors/tenant.interceptor.ts`
-- [ ] Adicionar constante `VALID_SCHEMA_RE = /^[a-z0-9_]+$/` antes do bloco do QueryRunner nos 3 interceptors
-- [ ] Lançar `BadRequestException` se o schema não passar na regex
-- [ ] Manter `'public'` como caso especial isento da regex (já é validado pelo gate de roles)
+- [x] Adicionar constante `VALID_SCHEMA_RE = /^[a-z][a-z0-9_]{0,62}$/` antes do bloco do QueryRunner nos 3 interceptors
+- [x] Lançar `BadRequestException` se o schema não passar na regex
+- [x] Manter `'public'` como caso especial isento da regex (já é validado pelo gate de roles)
 
-### F2 — Endpoint `/users/provision` e `/users/:email` sem autenticação
+### F2 — Endpoint `/users/provision` e `/users/:email` sem autenticação ✅
 - **Criticidade:** CRÍTICA
 - **Arquivos:** `apps/ms-identity/src/users/users.controller.ts`, `apps/ms-identity/src/users/users.module.ts`
-- [ ] Adicionar `PassportModule` e `JwtModule.registerAsync` diretamente em `UsersModule` (evitar circular dependency com `AuthModule`)
-- [ ] Adicionar `JwtStrategy` nos providers de `UsersModule`
-- [ ] Adicionar `@UseGuards(AuthGuard('jwt'))` na classe `UsersController`
+- [x] Adicionar `PassportModule` e `JwtModule.registerAsync` diretamente em `UsersModule` (evitar circular dependency com `AuthModule`)
+- [x] Adicionar `JwtStrategy` nos providers de `UsersModule`
+- [x] Adicionar `@UseGuards(AuthGuard('jwt'))` na classe `UsersController`
 
-### F3 — JWT token exposto na URL do redirect OAuth
+### F3 — JWT token exposto na URL do redirect OAuth ✅
 - **Criticidade:** CRÍTICA
-- **Arquivos:** `apps/ms-identity/src/auth/auth.controller.ts`, `apps/ms-identity/src/auth/strategies/jwt.strategy.ts`, `apps/ms-identity/src/main.ts`, `apps/frontend/src/pages/LoginSuccess.tsx`, `apps/frontend/src/stores/authStore.ts`
-- [ ] Instalar `cookie-parser` e `@types/cookie-parser` em `apps/ms-identity`
-- [ ] Adicionar `app.use(cookieParser())` em `ms-identity/src/main.ts`
-- [ ] Adicionar `NODE_ENV`, `FRONTEND_URL`, `COOKIE_DOMAIN` ao `.env` do ms-identity
-- [ ] Substituir `res.redirect('...?token=...')` por `res.cookie('auth_token', token, { httpOnly: true, secure: isProd, sameSite: 'strict' })` + `res.redirect(frontendUrl)`
-- [ ] Atualizar `JwtStrategy` para extrair token do cookie (`request.cookies.auth_token`) como extractor primário, mantendo Bearer como fallback
-- [ ] Atualizar `LoginSuccess.tsx`: remover leitura de `?token=`, fazer `fetch('/auth/profile', { credentials: 'include' })` para hidratar a store
-- [ ] Atualizar `authStore.ts`: remover campo `token` da store persistida
+- **Arquivos:** `apps/ms-identity/src/auth/auth.controller.ts`, `apps/ms-identity/src/auth/strategies/jwt.strategy.ts`, `apps/ms-identity/src/main.ts`, `apps/frontend/src/pages/LoginSuccess.tsx`
+- [x] Instalar `cookie-parser` e `@types/cookie-parser` em `apps/ms-identity`
+- [x] Adicionar `app.use(cookieParser())` em `ms-identity/src/main.ts`
+- [x] Adicionar `NODE_ENV`, `FRONTEND_URL`, `COOKIE_DOMAIN` ao `.env.example` do ms-identity
+- [x] Substituir `res.redirect('...?token=...')` por `res.cookie('auth_token', token, { httpOnly: true, secure: isProd, sameSite: 'strict' })` + `res.redirect(frontendUrl)`
+- [x] Adicionar endpoint `GET /auth/token` protegido por cookie para o frontend trocar cookie por token
+- [x] Atualizar `JwtStrategy` para extrair token do cookie como extractor primário, mantendo Bearer como fallback
+- [x] Atualizar `LoginSuccess.tsx`: chamar `GET /auth/token` com `credentials: 'include'` para hidratar a store
+- [ ] **AÇÃO MANUAL:** Adicionar `NODE_ENV=development`, `FRONTEND_URL=http://localhost:5173`, `COOKIE_DOMAIN=` nos `.env` locais
 
-### F4 — Stack trace retornado ao cliente HTTP (incluído no F3)
+### F4 — Stack trace retornado ao cliente HTTP ✅ (corrigido junto com F3)
 - **Criticidade:** ALTA
 - **Arquivo:** `apps/ms-identity/src/auth/auth.controller.ts`
-- [ ] Remover `error.message` e `error.stack` do response body
-- [ ] Usar `this.logger.error(msg, error.stack)` para logar server-side
+- [x] Remover `error.message` e `error.stack` do response body
+- [x] Usar `this.logger.error(msg, error.stack)` para logar server-side
 
-### F5 — JWT sem algoritmo fixo (algorithm pinning)
+### F5 — JWT sem algoritmo fixo (algorithm pinning) ✅
 - **Criticidade:** ALTA
 - **Arquivos:** `apps/ms-academic/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-hr/src/common/interceptors/tenant.interceptor.ts`, `apps/ms-finance/src/common/interceptors/tenant.interceptor.ts`
-- [ ] Adicionar `{ algorithms: ['HS256'] }` como terceiro argumento em todos os `jwt.verify()` nos 3 interceptors
+- [x] Adicionar `{ algorithms: ['HS256'] }` como terceiro argumento em todos os `jwt.verify()` nos 3 interceptors
 
-### F6 — Arquivos `.env` com credenciais reais expostos no git
+### F6 — Arquivos `.env` protegidos no git ✅
 - **Criticidade:** CRÍTICA
 - **Arquivos:** `.gitignore`, todos os `apps/*/.env`
-- [ ] Atualizar `.gitignore` root: adicionar `apps/**/.env` e `apps/**/.env.local`
-- [ ] Executar `git rm --cached apps/ms-identity/.env apps/ms-academic/.env apps/ms-hr/.env apps/ms-finance/.env apps/ms-notification/.env`
-- [ ] Criar `apps/ms-identity/.env.example` com todas as chaves e valores placeholder
-- [ ] Criar `apps/ms-academic/.env.example`
-- [ ] Criar `apps/ms-hr/.env.example`
-- [ ] Criar `apps/ms-finance/.env.example`
-- [ ] Criar `apps/ms-notification/.env.example`
+- [x] Atualizar `.gitignore` root: adicionar `apps/**/.env` e `apps/**/.env.local`
+- [x] Verificado: `.env` nunca foram commitados (já estavam fora do tracking)
+- [x] Criar `apps/ms-identity/.env.example` com todas as chaves e valores placeholder
+- [x] Criar `apps/ms-academic/.env.example`
+- [x] Criar `apps/ms-hr/.env.example`
+- [x] Criar `apps/ms-finance/.env.example`
+- [x] Criar `apps/ms-notification/.env.example`
 - [ ] **AÇÃO MANUAL OBRIGATÓRIA:** Revogar `GOOGLE_CLIENT_SECRET` no Google Cloud Console e gerar novo
 - [ ] **AÇÃO MANUAL OBRIGATÓRIA:** Gerar novo `JWT_SECRET` forte (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) e atualizar em todos os `.env`
 
-### F7 — Kong Admin API exposta publicamente na porta 8001
+### F7 — Kong Admin API exposta publicamente na porta 8001 ✅
 - **Criticidade:** CRÍTICA
 - **Arquivo:** `docker-compose.yml`
-- [ ] Mudar `KONG_ADMIN_LISTEN` de `0.0.0.0:8001` para `127.0.0.1:8001, 127.0.0.1:8444 ssl`
-- [ ] Mudar port binding de `"8001:8001"` para `"127.0.0.1:8001:8001"`
+- [x] Mudar `KONG_ADMIN_LISTEN` de `0.0.0.0:8001` para `127.0.0.1:8001, 127.0.0.1:8444 ssl`
+- [x] Mudar port binding de `"8001:8001"` para `"127.0.0.1:8001:8001"`
 
-### F8 — `franchiseSchema` no DTO sem validação de formato
+### F8 — `franchiseSchema` no DTO sem validação de formato ✅
 - **Criticidade:** ALTA
 - **Arquivo:** `apps/ms-identity/src/users/dto/provision-user.dto.ts`
-- [ ] Adicionar `@Matches(/^[a-z][a-z0-9_]{0,62}$/)` no campo `franchiseSchema`
-- [ ] Garantir que `ValidationPipe({ whitelist: true })` está ativo em `ms-identity/src/main.ts`
+- [x] Adicionar `@Matches(/^[a-z][a-z0-9_]{0,62}$/)` no campo `franchiseSchema`
+- [x] Adicionar role `GESTOR` no enum `UserRole` (estava faltando)
+- [x] `ValidationPipe({ whitelist: true })` já ativo em `ms-identity/src/main.ts`
 
 ---
 
