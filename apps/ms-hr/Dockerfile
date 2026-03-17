@@ -2,13 +2,14 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy all workspace manifests so npm can resolve the full lock file
+# Copy ALL workspace manifests so npm can fully resolve the root package-lock.json
 COPY package*.json ./
 COPY apps/ms-identity/package*.json ./apps/ms-identity/
 COPY apps/ms-academic/package*.json ./apps/ms-academic/
 COPY apps/ms-hr/package*.json ./apps/ms-hr/
 COPY apps/ms-finance/package*.json ./apps/ms-finance/
 COPY apps/ms-notification/package*.json ./apps/ms-notification/
+COPY apps/frontend/package*.json ./apps/frontend/
 
 RUN npm install --workspace=apps/ms-hr
 
