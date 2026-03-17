@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
+import { School } from '../tenants/entities/school.entity';
 import { RefreshTokenService } from './refresh-token.service';
 
 @Injectable()
@@ -14,6 +15,8 @@ export class AuthService {
     private usersRepository: Repository<User>,
     @InjectRepository(FranchiseTenant)
     private tenantsRepository: Repository<FranchiseTenant>,
+    @InjectRepository(School)
+    private schoolsRepository: Repository<School>,
     private jwtService: JwtService,
     // F24: refresh token support
     private refreshTokenService: RefreshTokenService,
@@ -39,6 +42,11 @@ export class AuthService {
     }
 
     const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
+    const schoolIds = tenants.map(t => t.schoolId);
+    const schools = schoolIds.length > 0
+      ? await this.schoolsRepository.findByIds(schoolIds)
+      : [];
+    const schoolMap = new Map(schools.map(s => [s.id, s.name]));
 
     const jwtPayload = {
       sub: user.id,
@@ -47,6 +55,7 @@ export class AuthService {
       tenants: tenants.map(t => ({
         schema: t.franchiseSchema,
         schoolId: t.schoolId,
+        schoolName: schoolMap.get(t.schoolId) || t.schoolId,
         role: t.role,
       })),
     };
@@ -76,6 +85,11 @@ export class AuthService {
 
   async login(user: any) {
     const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
+    const schoolIds = tenants.map(t => t.schoolId);
+    const schools = schoolIds.length > 0
+      ? await this.schoolsRepository.findByIds(schoolIds)
+      : [];
+    const schoolMap = new Map(schools.map(s => [s.id, s.name]));
     const payload = {
       sub: user.id,
       email: user.email,
@@ -83,6 +97,7 @@ export class AuthService {
       tenants: tenants.map(t => ({
         schema: t.franchiseSchema,
         schoolId: t.schoolId,
+        schoolName: schoolMap.get(t.schoolId) || t.schoolId,
         role: t.role,
       })),
     };

@@ -27,8 +27,13 @@ const LoginSuccess: React.FC = () => {
         });
 
         if (user.tenants?.length > 0) {
-          useTenantStore.getState().setCurrentTenant(user.tenants[0]);
-          useAuthStore.getState().setEscolaSelecionada(user.tenants[0].id);
+          const t = user.tenants[0];
+          useTenantStore.getState().setCurrentTenant({
+            id: t.schoolId,
+            name: t.schoolName || t.schoolId,
+            schema: t.schema,
+          });
+          useAuthStore.getState().setEscolaSelecionada(t.schoolId);
         }
 
         navigate('/');
