@@ -58,13 +58,12 @@ export class AuthService {
     return { accessToken, refreshToken, user };
   }
 
-  /** F24: validate a refresh token and issue a new access token (+ rotated refresh token). */
+  /** F24/I2: validate and atomically consume the refresh token (GETDEL), then issue new pair. */
   async refreshAccessToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    const payload = await this.refreshTokenService.validate(refreshToken);
-    // Rotate: revoke old token, issue new pair
-    await this.refreshTokenService.revoke(refreshToken);
+    // consume() is atomic — closes TOCTOU window vs. validate()+revoke() sequence
+    const payload = await this.refreshTokenService.consume(refreshToken);
     const newRefreshToken = await this.refreshTokenService.create(payload);
     const newAccessToken = this.jwtService.sign(payload);
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };

@@ -24,7 +24,7 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
             urls: [configService.get<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
             queue: 'school_events_queue',
             queueOptions: {
-              durable: false,
+              durable: true,
             },
           },
         }),
@@ -37,7 +37,8 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d', issuer: 'gestor-escolar-app' },
+        // I1: keep in sync with auth.module.ts — 15m to match F24 policy
+        signOptions: { expiresIn: '15m', issuer: 'gestor-escolar-app' },
       }),
     }),
   ],

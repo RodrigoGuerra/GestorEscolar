@@ -3,7 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Invoice, InvoiceStatus } from '../invoices/entities/invoice.entity';
-import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ClientProxy, ClientProxyFactory, RmqRecord, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -53,16 +53,20 @@ export class CronService {
       
       this.logger.log(`Invoice ${invoice.id} marked as OVERDUE. Emitting event...`);
       
-      // F21: persistent:true ensures messages survive broker restart
+      // I3/F21: use RmqRecord so persistent:true is set as an actual AMQP property
+      // (durable queue + persistent messages = survives broker restart)
       this.client.emit(
-        { cmd: 'student.overdue', persistent: true },
-        {
-          invoiceId: invoice.id,
-          studentId: invoice.studentId,
-          schoolId: invoice.schoolId,
-          amount: invoice.amount,
-          dueDate: invoice.dueDate,
-        },
+        'student.overdue',
+        new RmqRecord(
+          {
+            invoiceId: invoice.id,
+            studentId: invoice.studentId,
+            schoolId: invoice.schoolId,
+            amount: invoice.amount,
+            dueDate: invoice.dueDate,
+          },
+          { persistent: true },
+        ),
       );
     }
 

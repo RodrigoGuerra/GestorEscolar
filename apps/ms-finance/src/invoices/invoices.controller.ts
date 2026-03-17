@@ -17,13 +17,19 @@ export class InvoicesController {
 
   @Get()
   findAll(@Query('studentId') studentId: string | undefined, @Req() req: any) {
-    if (studentId) {
-      // F18: STUDENT can only fetch their own invoices
-      const user = req.user;
-      const role = user?.role?.toUpperCase();
-      if (role === UserRole.STUDENT && user?.sub !== studentId) {
+    const user = req.user;
+    const role = user?.role?.toUpperCase();
+
+    // C2/F18: STUDENT is always scoped to their own invoices — auto-fill studentId if omitted
+    if (role === UserRole.STUDENT) {
+      const effectiveStudentId = studentId ?? user?.sub;
+      if (!effectiveStudentId || effectiveStudentId !== user?.sub) {
         throw new ForbiddenException('You can only view your own invoices');
       }
+      return this.invoicesService.findByStudent(effectiveStudentId);
+    }
+
+    if (studentId) {
       return this.invoicesService.findByStudent(studentId);
     }
     return this.invoicesService.findAll();

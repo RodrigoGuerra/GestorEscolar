@@ -31,7 +31,10 @@ export class JwtExtractGuard implements CanActivate {
       throw new UnauthorizedException('Malformed token');
     }
 
+    // C1: include both `sub` and `userId` so IDOR checks (user.sub) work regardless
+    // of whether request.user was set here or later overwritten by TenantInterceptor
     request.user = {
+      sub: decoded.sub,
       userId: decoded.sub,
       email: decoded.email,
       role: decoded.role,

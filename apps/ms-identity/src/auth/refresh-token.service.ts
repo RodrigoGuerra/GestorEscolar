@@ -38,6 +38,20 @@ export class RefreshTokenService implements OnModuleDestroy {
     return JSON.parse(raw) as Record<string, any>;
   }
 
+  /**
+   * I2: Atomically consume a refresh token using GETDEL (Redis 6.2+).
+   * Closes the TOCTOU window where two concurrent requests with the same token
+   * could both pass validate() before either runs revoke().
+   * Returns the payload if the token existed, throws if it was already consumed.
+   */
+  async consume(token: string): Promise<Record<string, any>> {
+    const raw = await this.redis.getdel(`${KEY_PREFIX}${token}`);
+    if (!raw) {
+      throw new UnauthorizedException('Refresh token invalid or expired');
+    }
+    return JSON.parse(raw) as Record<string, any>;
+  }
+
   /** Revoke a refresh token (logout). */
   async revoke(token: string): Promise<void> {
     await this.redis.del(`${KEY_PREFIX}${token}`);
