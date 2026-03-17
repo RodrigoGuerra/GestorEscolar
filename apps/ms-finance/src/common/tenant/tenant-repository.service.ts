@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { EntityTarget, QueryRunner, Repository } from 'typeorm';
+import { EntityTarget, ObjectLiteral, QueryRunner, Repository } from 'typeorm';
 
 /**
  * F16: REQUEST-scoped service that exposes repositories bound to the
@@ -17,7 +17,7 @@ import { EntityTarget, QueryRunner, Repository } from 'typeorm';
 export class TenantRepositoryService {
   constructor(@Inject(REQUEST) private readonly request: Record<string, any>) {}
 
-  getRepository<T>(entity: EntityTarget<T>): Repository<T> {
+  getRepository<T extends ObjectLiteral>(entity: EntityTarget<T>): Repository<T> {
     const queryRunner = this.request['queryRunner'] as QueryRunner | undefined;
     if (!queryRunner) {
       throw new InternalServerErrorException(
