@@ -111,7 +111,8 @@ export class AuthController {
     res.cookie(ACCESS_COOKIE, accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
     res.cookie(REFRESH_COOKIE, refreshToken, { ...cookieBase, maxAge: REFRESH_TTL_MS });
 
-    return res.json({ ok: true });
+    // Return the new access token so the frontend can update its store and retry the request
+    return res.json({ ok: true, accessToken });
   }
 
   /**

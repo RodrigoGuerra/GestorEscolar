@@ -1,11 +1,26 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useTenantStore } from '../stores/tenantStore';
-import { Bell, User as UserIcon } from 'lucide-react';
+import { Bell, User as UserIcon, LogOut } from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Header: React.FC = () => {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const currentTenant = useTenantStore((state) => state.currentTenant);
+
+  const handleLogout = async () => {
+    try {
+      // F24: revoke refresh token in Redis and clear cookies server-side
+      await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } finally {
+      clearAuth();
+      navigate('/login');
+    }
+  };
 
   return (
     <header className="h-20 bg-surface/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6 lg:px-10 sticky top-0 z-30">
@@ -35,6 +50,14 @@ const Header: React.FC = () => {
           <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-glow">
             <UserIcon size={24} />
           </div>
+          {/* F24: logout button — revokes refresh token and clears cookies */}
+          <button
+            onClick={handleLogout}
+            className="p-2.5 text-text-secondary hover:text-error transition-all"
+            title="Sair"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </header>
