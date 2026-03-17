@@ -2,14 +2,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy root package files for workspace resolution
+# Copy all workspace manifests so npm can resolve the full lock file
 COPY package*.json ./
 COPY apps/ms-identity/package*.json ./apps/ms-identity/
+COPY apps/ms-academic/package*.json ./apps/ms-academic/
+COPY apps/ms-hr/package*.json ./apps/ms-hr/
+COPY apps/ms-finance/package*.json ./apps/ms-finance/
+COPY apps/ms-notification/package*.json ./apps/ms-notification/
 
-# Install only production deps + devDeps needed for build
 RUN npm install --workspace=apps/ms-identity
 
-# Copy source
 COPY apps/ms-identity/ ./apps/ms-identity/
 
 WORKDIR /app/apps/ms-identity
@@ -21,12 +23,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy only production node_modules and compiled output
 COPY --from=builder /app/apps/ms-identity/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/ms-identity/package.json ./package.json
 
-# F15: run as non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
