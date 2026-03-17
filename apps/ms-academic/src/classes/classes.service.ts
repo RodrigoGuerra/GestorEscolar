@@ -3,29 +3,27 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Class } from './entities/class.entity';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
+import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
 
 @Injectable()
 export class ClassesService {
-  constructor(
-    @InjectRepository(Class)
-    private readonly repository: Repository<Class>,
-  ) {}
+  constructor(private readonly tenantRepo: TenantRepositoryService) {}
 
   create(createClassDto: CreateClassDto) {
-    const entity = this.repository.create(createClassDto);
-    return this.repository.save(entity);
+    const repo = this.tenantRepo.getRepository(Class);
+    return repo.save(repo.create(createClassDto));
   }
 
   findAll() {
-    return this.repository.find({ relations: ['school', 'students'] });
+    return this.tenantRepo
+      .getRepository(Class)
+      .find({ relations: ['school', 'students'] });
   }
 
   async findOne(id: string) {
-    const entity = await this.repository.findOne({
+    const entity = await this.tenantRepo.getRepository(Class).findOne({
       where: { id },
       relations: ['school', 'students'],
     });
@@ -34,32 +32,29 @@ export class ClassesService {
   }
 
   async update(id: string, updateClassDto: UpdateClassDto) {
+    const repo = this.tenantRepo.getRepository(Class);
     await this.findOne(id);
-    await this.repository.update(id, updateClassDto);
+    await repo.update(id, updateClassDto);
     return this.findOne(id);
   }
 
   async remove(id: string) {
     const entity = await this.findOne(id);
-    await this.repository.remove(entity);
+    await this.tenantRepo.getRepository(Class).remove(entity);
     return { deleted: true };
   }
 
   async assignStudent(classId: string, studentId: string) {
-    const classEntity = await this.repository.findOne({
+    const repo = this.tenantRepo.getRepository(Class);
+    const classEntity = await repo.findOne({
       where: { id: classId },
       relations: ['students'],
     });
     if (!classEntity) throw new NotFoundException('Class not found');
-
     if (classEntity.students.some((s) => s.id === studentId)) {
       throw new ConflictException('Student already assigned to this class');
     }
-
-    // We can't use StudentsService directly here to avoid circular dependency
-    // but we can use TypeORM's relation manager or add Student to this repo
-    // To keep it simple, we'll just add the student reference
     classEntity.students.push({ id: studentId } as any);
-    return this.repository.save(classEntity);
+    return repo.save(classEntity);
   }
 }

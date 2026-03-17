@@ -38,7 +38,7 @@ import { TimeRecordsModule } from './time-records/time-records.module';
     }),
     EmployeesModule,
     TimeRecordsModule,
-    TypeOrmModule.forFeature([Employee, BankDetails, Address, TimeRecord]),
+    // F16: TypeOrmModule.forFeature() removed — services now use TenantRepositoryService
     // F12: rate limiting
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 1000, limit: 20 },

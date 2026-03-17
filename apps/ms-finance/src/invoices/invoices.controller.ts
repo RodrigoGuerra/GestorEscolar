@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query, ForbiddenException, Req } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -16,8 +16,14 @@ export class InvoicesController {
   }
 
   @Get()
-  findAll(@Query('studentId') studentId?: string) {
+  findAll(@Query('studentId') studentId: string | undefined, @Req() req: any) {
     if (studentId) {
+      // F18: STUDENT can only fetch their own invoices
+      const user = req.user;
+      const role = user?.role?.toUpperCase();
+      if (role === UserRole.STUDENT && user?.sub !== studentId) {
+        throw new ForbiddenException('You can only view your own invoices');
+      }
       return this.invoicesService.findByStudent(studentId);
     }
     return this.invoicesService.findAll();

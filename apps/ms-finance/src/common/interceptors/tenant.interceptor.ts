@@ -121,6 +121,16 @@ export class TenantInterceptor implements NestInterceptor {
 
     return from(queryRunner.connect()).pipe(
       switchMap(async () => {
+        // F17: verify schema exists in pg_namespace to prevent tenant hopping by admins
+        if (tenantSchema !== 'public') {
+          const rows = await queryRunner.query(
+            `SELECT nspname FROM pg_namespace WHERE nspname = $1`,
+            [tenantSchema],
+          );
+          if (rows.length === 0) {
+            throw new ForbiddenException(`Tenant schema not found: "${tenantSchema}"`);
+          }
+        }
         await queryRunner.query(`SET search_path TO "${tenantSchema}", public`);
         request['tenantSchema'] = tenantSchema;
         request['queryRunner'] = queryRunner;

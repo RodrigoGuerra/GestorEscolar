@@ -155,44 +155,44 @@
 - **Criticidade:** CRÍTICA (falha arquitetural — dados não estão isolados por tenant)
 - **Arquivos:** vários (ver subtarefas)
 
-#### 3.1 Infraestrutura compartilhada (criar por microserviço: ms-academic, ms-hr, ms-finance)
-- [ ] Criar `src/common/tenant/tenant-repository.service.ts` (REQUEST-scoped, expõe `getRepository<T>()` via `queryRunner.manager`)
-- [ ] Criar `src/common/tenant/tenant.module.ts` (declara e exporta `TenantRepositoryService`)
-- [ ] Atualizar `TenantInterceptor` nos 3 serviços: além de `SET search_path`, salvar `request['queryRunner'] = queryRunner` (antes já salva `request['tenantSchema']`)
+#### 3.1 Infraestrutura compartilhada (criar por microserviço: ms-academic, ms-hr, ms-finance) ✅
+- [x] Criar `src/common/tenant/tenant-repository.service.ts` (REQUEST-scoped, expõe `getRepository<T>()` via `queryRunner.manager`)
+- [x] Criar `src/common/tenant/tenant.module.ts` (declara e exporta `TenantRepositoryService`)
+- [x] Atualizar `TenantInterceptor` nos 3 serviços: além de `SET search_path`, salvar `request['queryRunner'] = queryRunner` (antes já salva `request['tenantSchema']`)
 
-#### 3.2 Migração dos services do ms-academic
-- [ ] Migrar `StudentsService`: substituir `@InjectRepository(Student)` por `TenantRepositoryService`
-- [ ] Atualizar `StudentsModule`: remover `TypeOrmModule.forFeature([Student])`, importar `TenantModule`
-- [ ] Migrar `SchoolsService` (atenção: tem `createQueryBuilder` → usar `tenantRepo.getQueryRunner().manager.createQueryBuilder()`)
-- [ ] Atualizar `SchoolsModule`
-- [ ] Migrar `SubjectsService` + atualizar `SubjectsModule`
-- [ ] Migrar `ClassesService` + atualizar `ClassesModule`
-- [ ] Migrar `GradesService` + atualizar `GradesModule`
-- [ ] Remover `TypeOrmModule.forFeature([...])` redundante do `app.module.ts` do ms-academic
+#### 3.2 Migração dos services do ms-academic ✅
+- [x] Migrar `StudentsService`: substituir `@InjectRepository(Student)` por `TenantRepositoryService`
+- [x] Atualizar `StudentsModule`: remover `TypeOrmModule.forFeature([Student])`, importar `TenantModule`
+- [x] Migrar `SchoolsService` (atenção: tem `createQueryBuilder` → usar `tenantRepo.getQueryRunner().manager.createQueryBuilder()`)
+- [x] Atualizar `SchoolsModule`
+- [x] Migrar `SubjectsService` + atualizar `SubjectsModule`
+- [x] Migrar `ClassesService` + atualizar `ClassesModule`
+- [x] Migrar `GradesService` + atualizar `GradesModule`
+- [x] Remover `TypeOrmModule.forFeature([...])` redundante do `app.module.ts` do ms-academic
 
-#### 3.3 Migração dos services do ms-hr
-- [ ] Migrar `EmployeesService` + atualizar `EmployeesModule`
-- [ ] Migrar `TimeRecordsService` + atualizar `TimeRecordsModule`
-- [ ] Remover `TypeOrmModule.forFeature([...])` redundante do `app.module.ts` do ms-hr
+#### 3.3 Migração dos services do ms-hr ✅
+- [x] Migrar `EmployeesService` + atualizar `EmployeesModule`
+- [x] Migrar `TimeRecordsService` + atualizar `TimeRecordsModule`
+- [x] Remover `TypeOrmModule.forFeature([...])` redundante do `app.module.ts` do ms-hr
 
-#### 3.4 Migração dos services do ms-finance
-- [ ] Migrar `InvoicesService` + atualizar `InvoicesModule`
-- [ ] Migrar `TransactionsService` + atualizar `TransactionsModule`
-- [ ] **NÃO migrar** `CronService` — ele não tem contexto HTTP; deve continuar usando `DataSource` diretamente com QueryRunner próprio
-- [ ] Remover `TypeOrmModule.forFeature([...])` redundante do `app.module.ts` do ms-finance
+#### 3.4 Migração dos services do ms-finance ✅
+- [x] Migrar `InvoicesService` + atualizar `InvoicesModule`
+- [x] Migrar `TransactionsService` + atualizar `TransactionsModule`
+- [x] **NÃO migrar** `CronService` — ele não tem contexto HTTP; deve continuar usando `DataSource` diretamente com QueryRunner próprio
+- [x] `InvoicesModule` mantém `TypeOrmModule.forFeature([Invoice])` para o CronService; `app.module.ts` não tem forFeature redundante
 
-### F17 — Tenant hopping para usuários admin/manager
+### F17 — Tenant hopping para usuários admin/manager ✅
 - **Criticidade:** CRÍTICA
 - **Arquivos:** `apps/ms-academic/src/common/interceptors/tenant.interceptor.ts` (e equivalentes)
-- [ ] No branch do interceptor onde user é admin e schema não está no JWT, fazer query `SELECT nspname FROM pg_namespace WHERE nspname = $1` para validar que o schema existe
-- [ ] Lançar `ForbiddenException` se schema não existir no `pg_namespace`
+- [x] No branch do interceptor onde user é admin e schema não está no JWT, fazer query `SELECT nspname FROM pg_namespace WHERE nspname = $1` para validar que o schema existe
+- [x] Lançar `ForbiddenException` se schema não existir no `pg_namespace`
 
-### F18 — IDOR nos endpoints de recursos
+### F18 — IDOR nos endpoints de recursos ✅
 - **Criticidade:** ALTA
-- **Arquivos:** services de invoices, time-records, employees
-- [ ] `InvoicesService.findByStudent()`: verificar que `student_id` pertence ao tenant atual (o `search_path` garante o tenant, mas validar que o user autenticado é o próprio aluno ou um gestor)
-- [ ] `TimeRecordsController.getByEmployee()`: verificar que `employeeId` do path corresponde ao `userId` do token (ou que o caller tem role GESTOR/ADMIN)
-- [ ] `TimeRecordsService.punch()`: verificar que o `employeeId` do body corresponde ao `userId` do token ou que o caller tem role GESTOR/ADMIN
+- **Arquivos:** controllers de invoices, time-records
+- [x] `InvoicesController.findAll(?studentId=)`: STUDENT só pode buscar suas próprias invoices (`user.sub === studentId`)
+- [x] `TimeRecordsController.getByEmployee()`: EMPLOYEE só pode ver os próprios registros (`user.sub === id`)
+- [x] `TimeRecordsController.punch()`: EMPLOYEE só pode registrar ponto para si mesmo (`user.sub === punchDto.employeeId`)
 
 ---
 

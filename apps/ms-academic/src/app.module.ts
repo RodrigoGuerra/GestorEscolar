@@ -7,6 +7,7 @@ import { School } from './schools/entities/school.entity';
 import { Subject } from './subjects/entities/subject.entity';
 import { Class } from './classes/entities/class.entity';
 import { Grade } from './grades/entities/grade.entity';
+// entities still referenced in TypeOrmModule.forRootAsync entities array
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
@@ -46,7 +47,7 @@ import { Student } from './students/entities/student.entity';
     ClassesModule,
     GradesModule,
     StudentsModule,
-    TypeOrmModule.forFeature([School, Subject, Class, Grade, Student]),
+    // F16: TypeOrmModule.forFeature() removed — services now use TenantRepositoryService
     // F12: rate limiting — 20 req/s short burst, 500 req/min sustained
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 1000, limit: 20 },
