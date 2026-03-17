@@ -2,7 +2,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy ALL workspace manifests so npm can fully resolve the root package-lock.json
+# Copy ALL workspace manifests before install so the lockfile resolves correctly
 COPY package*.json ./
 COPY apps/ms-identity/package*.json ./apps/ms-identity/
 COPY apps/ms-academic/package*.json ./apps/ms-academic/
@@ -11,7 +11,8 @@ COPY apps/ms-finance/package*.json ./apps/ms-finance/
 COPY apps/ms-notification/package*.json ./apps/ms-notification/
 COPY apps/frontend/package*.json ./apps/frontend/
 
-RUN npm install --workspace=apps/ms-identity
+# Full root install — hoists all workspace deps to /app/node_modules
+RUN npm install
 
 COPY apps/ms-identity/ ./apps/ms-identity/
 
