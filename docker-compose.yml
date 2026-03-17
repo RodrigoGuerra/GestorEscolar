@@ -71,6 +71,8 @@ services:
     container_name: schoolgateway
     restart: always
     depends_on:
+      # F23: Kong rate-limit redis policy requires Redis to be up first
+      - redis
       - ms-identity
       - ms-academic
       - ms-hr
@@ -113,6 +115,8 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      # F24: ms-identity uses Redis to store/validate refresh tokens
+      - redis
     networks:
       - gestor-net
 

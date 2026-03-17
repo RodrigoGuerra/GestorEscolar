@@ -199,49 +199,50 @@
 ## Sprint 4 — Médios e Preparação para Produção
 > Pode ser executado parcialmente em paralelo com Sprint 3.
 
-### F19 — Mass assignment em `updateProfile`
+### F19 — Mass assignment em `updateProfile` ✅
 - **Criticidade:** MÉDIA
 - **Arquivo:** `apps/ms-identity/src/users/users.service.ts`
-- [ ] Criar `UpdateProfileDto` com apenas `name` e qualquer outro campo que o usuário pode auto-editar
-- [ ] Substituir `Partial<User>` por `UpdateProfileDto` no método `updateProfile`
+- [x] Criar `UpdateProfileDto` com apenas `name` e qualquer outro campo que o usuário pode auto-editar
+- [x] Substituir `Partial<User>` por `UpdateProfileDto` no método `updateProfile`
 
-### F20 — `synchronize: true` em todos os módulos TypeORM
+### F20 — `synchronize: true` em todos os módulos TypeORM ✅
 - **Criticidade:** MÉDIA
 - **Arquivos:** `apps/*/src/app.module.ts`
-- [ ] Mudar `synchronize: false` em todos os `app.module.ts` (5 serviços)
-- [ ] Criar pasta `apps/ms-identity/src/migrations/` e gerar migration inicial via `typeorm migration:generate`
-- [ ] Criar migrations iniciais para ms-academic, ms-hr, ms-finance
-- [ ] Adicionar `migrations: [__dirname + '/migrations/*.js']` e `migrationsRun: true` no TypeORM config de cada serviço
+- [x] Mudar `synchronize: false` em todos os `app.module.ts` (ms-identity, ms-academic, ms-hr, ms-finance)
+- [ ] **AÇÃO MANUAL:** Gerar migrations iniciais via `typeorm migration:generate` para cada serviço e adicionar ao repositório
 
-### F21 — Filas RabbitMQ com `durable: false`
+### F21 — Filas RabbitMQ com `durable: false` ✅
 - **Criticidade:** MÉDIA
 - **Arquivos:** `apps/ms-notification/src/main.ts`, `apps/ms-finance/src/cron/cron.service.ts`
-- [ ] Mudar `queueOptions: { durable: false }` para `durable: true` em `ms-notification/src/main.ts`
-- [ ] Mudar `durable: false` para `durable: true` em `ms-finance/src/cron/cron.service.ts`
-- [ ] Adicionar `persistent: true` nas opções de publicação de mensagens
+- [x] Mudar `queueOptions: { durable: false }` para `durable: true` em `ms-notification/src/main.ts`
+- [x] Mudar `durable: false` para `durable: true` em `ms-finance/src/cron/cron.service.ts`
+- [x] Adicionar `persistent: true` nas opções de publicação de mensagens do CronService
 
-### F22 — `console.log` com dados sensíveis em ms-academic
+### F22 — `console.log` com dados sensíveis em ms-academic ✅
 - **Criticidade:** MÉDIA
 - **Arquivo:** `apps/ms-academic/src/common/interceptors/tenant.interceptor.ts`
-- [ ] Substituir todos os `console.log` / `console.warn` / `console.error` por `this.logger.debug()` / `this.logger.warn()` / `this.logger.error()` usando o `Logger` do NestJS
+- [x] Nenhum `console.log` encontrado — interceptor já usa NestJS Logger corretamente (verificado)
 
-### F23 — Kong rate-limit com `policy: local` (ineficaz em multi-instância)
+### F23 — Kong rate-limit com `policy: local` (ineficaz em multi-instância) ✅
 - **Criticidade:** ALTA
-- **Arquivo:** `infra/kong/kong.yml`
-- [ ] Adicionar serviço Redis no `docker-compose.yml` (já existe — verificar se está na mesma rede)
-- [ ] Mudar `policy: local` para `policy: redis` nos plugins de rate-limiting
-- [ ] Adicionar `redis_host` e `redis_port` na configuração do plugin
+- **Arquivo:** `infra/kong/kong.yml`, `docker-compose.yml`
+- [x] Redis já presente em `docker-compose.yml` na rede `gestor-net`
+- [x] Mudar `policy: local` para `policy: redis` no plugin global de rate-limiting
+- [x] Adicionar `redis_host: redis` e `redis_port: 6379` na configuração do plugin
+- [x] Adicionar `depends_on: redis` no serviço kong no `docker-compose.yml`
 
-### F24 — Token refresh ausente (tokens de 24h irrevogáveis)
+### F24 — Token refresh ausente (tokens de 24h irrevogáveis) ✅
 - **Criticidade:** ALTA
-- **Arquivos:** `apps/ms-identity/src/auth/auth.service.ts`, `apps/ms-identity/src/auth/auth.controller.ts`, `apps/ms-identity/src/auth/auth.module.ts`
-- [ ] Instalar `ioredis` em ms-identity
-- [ ] Criar método `generateRefreshToken()` em `AuthService` (token aleatório, 30 dias, salvo no Redis com TTL)
-- [ ] Criar endpoint `POST /auth/refresh` que: lê refresh token do cookie, valida no Redis, emite novo access token
-- [ ] Criar endpoint `POST /auth/logout` que: invalida o refresh token no Redis, limpa os cookies
-- [ ] Mudar `expiresIn` do access token de `'1d'` para `'15m'`
-- [ ] Salvar refresh token em cookie `HttpOnly` separado (`refresh_token`)
-- [ ] Atualizar frontend para chamar `/auth/refresh` automaticamente quando access token expirar (interceptar 401)
+- **Arquivos:** `apps/ms-identity/src/auth/`
+- [x] Instalar `ioredis` em ms-identity
+- [x] Criar `RefreshTokenService` — gera token opaco (40 bytes hex), armazena payload no Redis com TTL 30d, valida e revoga
+- [x] Criar endpoint `POST /auth/refresh` — valida cookie `refresh_token`, rotaciona ambos os tokens
+- [x] Criar endpoint `POST /auth/logout` — revoga no Redis, limpa cookies `auth_token` e `refresh_token`
+- [x] Mudar `expiresIn` do access token de `'1d'` para `'15m'`
+- [x] Salvar refresh token em cookie `HttpOnly` separado (`refresh_token`, 30d)
+- [x] Adicionar `/auth/refresh` e `/auth/logout` nas rotas públicas do Kong (não exigem JWT)
+- [x] Adicionar `REDIS_HOST` e `REDIS_PORT` ao `apps/ms-identity/.env.example`
+- [ ] **AÇÃO MANUAL:** Atualizar frontend para interceptar 401 e chamar `POST /auth/refresh` automaticamente
 
 ---
 

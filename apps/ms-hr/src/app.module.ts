@@ -32,7 +32,8 @@ import { TimeRecordsModule } from './time-records/time-records.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [Employee, BankDetails, Address, TimeRecord],
-        synchronize: true,
+        // F20: never auto-sync in production — run migrations instead
+        synchronize: false,
         logging: true,
       }),
     }),

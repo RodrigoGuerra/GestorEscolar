@@ -1,9 +1,23 @@
-import { Controller, Get, UseGuards, Req, Res, Logger, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Req,
+  Res,
+  Logger,
+  HttpStatus,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
+
+const REFRESH_COOKIE = 'refresh_token';
+const ACCESS_COOKIE = 'auth_token';
+const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 @Controller('auth')
 export class AuthController {
@@ -26,22 +40,26 @@ export class AuthController {
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     try {
       this.logger.log('Starting Google Auth Callback');
-      const { accessToken } = await this.authService.validateOAuthUser(req.user);
+      // F24: now returns both accessToken (15m) and refreshToken (opaque, 30d in Redis)
+      const { accessToken, refreshToken } = await this.authService.validateOAuthUser(req.user);
       this.logger.log('Access token generated successfully');
 
       const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
       const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN') || undefined;
       const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
 
-      // F3: deliver token via HttpOnly cookie — NOT in the URL
-      res.cookie('auth_token', accessToken, {
+      const cookieBase = {
         httpOnly: true,
         secure: isProduction,
-        sameSite: 'strict',
+        sameSite: 'strict' as const,
         domain: cookieDomain,
-        maxAge: 24 * 60 * 60 * 1000, // 1 day, matches JWT expiry
         path: '/',
-      });
+      };
+
+      // F3/F24: short-lived access token (15m) — NOT in the URL
+      res.cookie(ACCESS_COOKIE, accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
+      // F24: long-lived opaque refresh token (30d)
+      res.cookie(REFRESH_COOKIE, refreshToken, { ...cookieBase, maxAge: REFRESH_TTL_MS });
 
       return res.redirect(`${frontendUrl}/login/success`);
     } catch (error) {
@@ -61,16 +79,52 @@ export class AuthController {
 
   /**
    * F3: Exchange the HttpOnly session cookie for an access token + user profile.
-   * The cookie is read server-side and returned in the response body so the
-   * frontend SPA can store it for Bearer-based API calls to downstream services.
    */
   @Get('token')
   @UseGuards(AuthGuard('jwt'))
   getToken(@Req() req: any, @Res() res: Response) {
-    const accessToken = req.cookies?.auth_token;
-    return res.json({
-      accessToken,
-      user: req.user,
-    });
+    const accessToken = req.cookies?.[ACCESS_COOKIE];
+    return res.json({ accessToken, user: req.user });
+  }
+
+  /**
+   * F24: Rotate refresh token — validates the opaque refresh_token cookie,
+   * issues a new 15m access_token and a rotated refresh_token (30d in Redis).
+   */
+  @Post('refresh')
+  async refresh(@Req() req: Request, @Res() res: Response) {
+    const token = (req as any).cookies?.[REFRESH_COOKIE];
+    if (!token) throw new UnauthorizedException('No refresh token');
+
+    const { accessToken, refreshToken } = await this.authService.refreshAccessToken(token);
+
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN') || undefined;
+    const cookieBase = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict' as const,
+      domain: cookieDomain,
+      path: '/',
+    };
+
+    res.cookie(ACCESS_COOKIE, accessToken, { ...cookieBase, maxAge: 15 * 60 * 1000 });
+    res.cookie(REFRESH_COOKIE, refreshToken, { ...cookieBase, maxAge: REFRESH_TTL_MS });
+
+    return res.json({ ok: true });
+  }
+
+  /**
+   * F24: Logout — revokes the refresh token in Redis and clears both cookies.
+   */
+  @Post('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const token = (req as any).cookies?.[REFRESH_COOKIE];
+    if (token) {
+      await this.authService.revokeRefreshToken(token);
+    }
+    res.clearCookie(ACCESS_COOKIE, { path: '/' });
+    res.clearCookie(REFRESH_COOKIE, { path: '/' });
+    return res.json({ ok: true });
   }
 }

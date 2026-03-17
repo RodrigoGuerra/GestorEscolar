@@ -8,6 +8,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { TenantsModule } from '../tenants/tenants.module';
+import { RefreshTokenService } from './refresh-token.service';
 
 @Module({
   imports: [
@@ -20,11 +21,12 @@ import { TenantsModule } from '../tenants/tenants.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         // F9: issuer must match the key_claim_name (iss) in kong.yml jwt plugin consumer
-        signOptions: { expiresIn: '1d', issuer: 'gestor-escolar-app' },
+        // F24: 15m short-lived access tokens — use POST /auth/refresh to rotate
+        signOptions: { expiresIn: '15m', issuer: 'gestor-escolar-app' },
       }),
     }),
   ],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, RefreshTokenService],
   controllers: [AuthController],
   exports: [AuthService],
 })

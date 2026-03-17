@@ -38,7 +38,8 @@ import { Student } from './students/entities/student.entity';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [School, Subject, Class, Grade, Student],
-        synchronize: true, // Enabled for development to ensure tables exist
+        // F20: never auto-sync in production — run migrations instead
+        synchronize: false,
         logging: true,
       }),
     }),

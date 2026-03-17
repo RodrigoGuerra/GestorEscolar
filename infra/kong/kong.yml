@@ -17,8 +17,10 @@ services:
         paths:
           - /auth/google
           - /auth/token
+          - /auth/refresh
+          - /auth/logout
         strip_path: false
-        # Public routes — no JWT required (OAuth callback & token exchange)
+        # Public routes — no JWT required (OAuth callback, token exchange, refresh, logout)
       - name: identity-protected-route
         paths:
           - /api/v1/users
@@ -89,7 +91,10 @@ plugins:
     config:
       second: 50
       hour: 10000
-      policy: local
+      # F23: use Redis so limits are shared across all Kong instances (not per-node)
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
   - name: cors
     config:
       # F13: restrict to known frontend origin — never wildcard with credentials: true

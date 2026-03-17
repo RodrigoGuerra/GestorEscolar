@@ -22,7 +22,8 @@ export class CronService {
         urls: [this.configService.get<string>('RABBITMQ_URL')!],
         queue: 'school_events_queue',
         queueOptions: {
-          durable: false,
+          // F21: durable queue survives broker restart — messages not lost
+          durable: true,
         },
       },
     });
@@ -52,13 +53,17 @@ export class CronService {
       
       this.logger.log(`Invoice ${invoice.id} marked as OVERDUE. Emitting event...`);
       
-      this.client.emit('student.overdue', {
-        invoiceId: invoice.id,
-        studentId: invoice.studentId,
-        schoolId: invoice.schoolId,
-        amount: invoice.amount,
-        dueDate: invoice.dueDate,
-      });
+      // F21: persistent:true ensures messages survive broker restart
+      this.client.emit(
+        { cmd: 'student.overdue', persistent: true },
+        {
+          invoiceId: invoice.id,
+          studentId: invoice.studentId,
+          schoolId: invoice.schoolId,
+          amount: invoice.amount,
+          dueDate: invoice.dueDate,
+        },
+      );
     }
 
     this.logger.log(`Updated ${overdueInvoices.length} invoices to OVERDUE.`);

@@ -5,6 +5,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { User } from './entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
 import { ProvisionUserDto } from './dto/provision-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -80,7 +81,8 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async updateProfile(userId: string, updateData: Partial<User>): Promise<User> {
+  // F19: accept only safe, user-editable fields via UpdateProfileDto — never Partial<User>
+  async updateProfile(userId: string, updateData: UpdateProfileDto): Promise<User> {
     await this.usersRepository.update(userId, updateData);
     return this.usersRepository.findOne({ where: { id: userId } }) as Promise<User>;
   }

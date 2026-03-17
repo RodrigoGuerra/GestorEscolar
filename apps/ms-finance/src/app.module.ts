@@ -31,7 +31,8 @@ import { RolesGuard } from './common/guards/roles.guard';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [Invoice, Transaction],
-        synchronize: true,
+        // F20: never auto-sync in production — run migrations instead
+        synchronize: false,
         logging: true,
       }),
     }),

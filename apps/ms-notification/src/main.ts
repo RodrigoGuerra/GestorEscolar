@@ -13,7 +13,8 @@ async function bootstrap() {
       urls: [configService.get<string>('RABBITMQ_URL')!],
       queue: 'school_events_queue',
       queueOptions: {
-        durable: false,
+        // F21: durable queue survives broker restart — messages not lost
+        durable: true,
       },
     },
   });
