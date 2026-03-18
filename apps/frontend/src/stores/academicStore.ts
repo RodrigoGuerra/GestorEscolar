@@ -46,7 +46,7 @@ export const useAcademicStore = create<AcademicState>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchStudentData: async (studentId: string) => {
+  fetchStudentData: async (_studentId: string) => {
     set({ loading: true, error: null });
     try {
       const [gradesRes] = await Promise.all([

@@ -6,7 +6,9 @@ export class AppController {
   private readonly logger = new Logger(AppController.name);
 
   @EventPattern('student.overdue')
-  handleStudentOverdue(@Payload() data: any) {
+  handleStudentOverdue(
+    @Payload() data: { studentId: string; invoiceId: string },
+  ) {
     this.logger.log(
       `[Notification] Received student.overdue event: ${JSON.stringify(data)}`,
     );

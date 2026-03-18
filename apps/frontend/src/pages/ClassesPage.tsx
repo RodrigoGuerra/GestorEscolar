@@ -3,7 +3,7 @@ import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import { LayoutGrid, Plus, Calendar, Search, Users, X, Loader2 } from 'lucide-react';
+import { LayoutGrid, Plus, Search, Users, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useTenantStore } from '../stores/tenantStore';
 import { useStudentStore } from '../stores/studentStore';
