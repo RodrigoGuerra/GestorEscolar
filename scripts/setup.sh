@@ -50,7 +50,7 @@ gen_password() {
 log "Generating shared secrets..."
 
 JWT_SECRET=$(gen_secret)
-KONG_JWT_SECRET=$(gen_secret)
+KONG_JWT_SECRET=$JWT_SECRET  # Kong must validate with the same secret used to sign JWTs
 POSTGRES_PASSWORD=$(gen_password)
 RABBITMQ_PASS=$(gen_password)
 GRAFANA_ADMIN_PASSWORD=$(gen_password)
