@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -49,5 +50,15 @@ export class StudentsController {
   @ApiOperation({ summary: 'Delete a student' })
   remove(@Param('id') id: string) {
     return this.studentsService.remove(id);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.GESTOR)
+  @Post(':id/classes/:classId')
+  @ApiOperation({ summary: 'Assign a student to a class' })
+  assignToClass(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('classId', ParseUUIDPipe) classId: string,
+  ) {
+    return this.studentsService.assignToClass(id, classId);
   }
 }

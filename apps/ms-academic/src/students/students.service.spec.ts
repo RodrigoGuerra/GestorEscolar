@@ -147,16 +147,50 @@ describe('StudentsService', () => {
   });
 
   describe('assignToClass', () => {
-    it('should return the student (stub that calls findOne)', async () => {
-      mockRepo.findOne.mockResolvedValue(mockStudent);
+    it('should add the class to student.classes and persist', async () => {
+      const mockClass = { id: 'cls-1', name: 'Turma A' };
+      const studentWithClass = { ...mockStudent, classes: [mockClass] };
+
+      mockRepo.findOne
+        .mockResolvedValueOnce(mockStudent)
+        .mockResolvedValueOnce(mockClass)
+        .mockResolvedValueOnce(studentWithClass);
+      mockRepo.save.mockResolvedValue(studentWithClass);
 
       const result = await service.assignToClass('stu-1', 'cls-1');
 
-      expect(mockRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'stu-1' },
-        relations: ['school', 'classes'],
-      });
-      expect(result).toEqual(mockStudent);
+      expect(mockRepo.save).toHaveBeenCalled();
+      expect(result.classes).toContainEqual(mockClass);
+    });
+
+    it('should throw NotFoundException if student does not exist', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      await expect(service.assignToClass('bad-id', 'cls-1')).rejects.toThrow(
+        'Student with ID bad-id not found',
+      );
+    });
+
+    it('should throw NotFoundException if class does not exist', async () => {
+      mockRepo.findOne
+        .mockResolvedValueOnce(mockStudent)
+        .mockResolvedValueOnce(null);
+      await expect(service.assignToClass('stu-1', 'bad-cls')).rejects.toThrow(
+        'Class with ID bad-cls not found',
+      );
+    });
+
+    it('should not save if student is already enrolled in the class', async () => {
+      const mockClass = { id: 'cls-1', name: 'Turma A' };
+      const enrolled = { ...mockStudent, classes: [mockClass] };
+      mockRepo.findOne
+        .mockResolvedValueOnce(enrolled)
+        .mockResolvedValueOnce(mockClass)
+        .mockResolvedValueOnce(enrolled);
+
+      const result = await service.assignToClass('stu-1', 'cls-1');
+
+      expect(mockRepo.save).not.toHaveBeenCalled();
+      expect(result.classes).toHaveLength(1);
     });
   });
 });

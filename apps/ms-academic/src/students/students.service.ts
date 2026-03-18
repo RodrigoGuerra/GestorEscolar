@@ -3,6 +3,7 @@ import { Student } from './entities/student.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
+import { Class } from '../classes/entities/class.entity';
 
 @Injectable()
 export class StudentsService {
@@ -42,7 +43,27 @@ export class StudentsService {
     await this.tenantRepo.getRepository(Student).remove(student);
   }
 
-  async assignToClass(studentId: string, _classId: string): Promise<Student> {
+  async assignToClass(studentId: string, classId: string): Promise<Student> {
+    const repo = this.tenantRepo.getRepository(Student);
+    const classRepo = this.tenantRepo.getRepository(Class);
+
+    const student = await this.findOne(studentId);
+
+    const targetClass = await classRepo.findOne({ where: { id: classId } });
+    if (!targetClass) {
+      throw new NotFoundException(`Class with ID ${classId} not found`);
+    }
+
+    if (!student.classes) {
+      student.classes = [];
+    }
+
+    const alreadyAssigned = student.classes.some((c) => c.id === classId);
+    if (!alreadyAssigned) {
+      student.classes.push(targetClass);
+      await repo.save(student);
+    }
+
     return this.findOne(studentId);
   }
 }
