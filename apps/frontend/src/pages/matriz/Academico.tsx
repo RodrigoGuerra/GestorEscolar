@@ -82,10 +82,10 @@ const Academico: React.FC = () => {
       setIsModalOpen(false);
       // Force refresh to handle matrix transfer (backend unsets other schools)
       await fetchSchools();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error saving school:', err);
       // Show backend error message (like the ConflictException)
-      alert(err.response?.data?.message || 'Erro ao salvar unidade.');
+      alert((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Erro ao salvar unidade.');
     }
   };
 
@@ -124,9 +124,9 @@ const Academico: React.FC = () => {
         await deleteSchool(schoolToDelete.id);
         setIsDeleteModalOpen(false);
         setSchoolToDelete(null);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error deleting school:', err);
-        alert(err.response?.data?.message || 'Erro ao excluir unidade.');
+        alert((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Erro ao excluir unidade.');
       }
     }
   };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -28,7 +28,7 @@ export default function SubjectsPage() {
   const token = useAuthStore(state => state.token);
   const tenant = useTenantStore(state => state.currentTenant);
 
-  const fetchSubjects = () => {
+  const fetchSubjects = useCallback(() => {
     if (!token || !tenant) return;
     setLoading(true);
     setError(null);
@@ -39,13 +39,11 @@ export default function SubjectsPage() {
         console.error('Failed to fetch subjects', err);
       })
       .finally(() => setLoading(false));
-  };
+  }, [token, tenant]);
 
   useEffect(() => {
-    if (token && tenant) {
-      fetchSubjects();
-    }
-  }, [token, tenant]);
+    fetchSubjects();
+  }, [fetchSubjects]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +70,9 @@ export default function SubjectsPage() {
       setEditingSubject(null);
       setFormData({ name: '', workload: 0 });
       fetchSubjects();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save subject', err);
-      setError(err.response?.data?.message || 'Erro ao salvar disciplina. Verifique se já existe uma com este nome.');
+      setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Erro ao salvar disciplina. Verifique se já existe uma com este nome.');
     } finally {
       setSubmitting(false);
     }
@@ -106,9 +104,9 @@ export default function SubjectsPage() {
       setIsDeleteModalOpen(false);
       setSubjectToDelete(null);
       fetchSubjects();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete subject', err);
-      setError(err.response?.data?.message || 'Erro ao excluir disciplina.');
+      setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Erro ao excluir disciplina.');
     } finally {
       setSubmitting(false);
     }

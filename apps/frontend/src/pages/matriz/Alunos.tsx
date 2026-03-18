@@ -169,8 +169,9 @@ const Alunos: React.FC = () => {
       }
       setIsFormModalOpen(false);
       setEditingStudent(null);
-    } catch (err: any) {
-      setLocalError(err.response?.data?.message || err.message);
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setLocalError(e.response?.data?.message || e.message || 'Erro desconhecido.');
     }
   };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import { CreditCard, TrendingUp, TrendingDown, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function FinancePage() {
   const token = useAuthStore(state => state.token);
   const tenant = useTenantStore(state => state.currentTenant);
 
-  const fetchTransactions = () => {
+  const fetchTransactions = useCallback(() => {
     if (!token || !tenant) return;
     setLoading(true);
     setError(null);
@@ -32,13 +32,11 @@ export default function FinancePage() {
         console.error('Failed to fetch transactions', err);
       })
       .finally(() => setLoading(false));
-  };
+  }, [token, tenant]);
 
   useEffect(() => {
-    if (token && tenant) {
-      fetchTransactions();
-    }
-  }, [token, tenant]);
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const balance = transactions.reduce((acc, curr) => {
     return curr.type === 'INCOME' ? acc + Number(curr.amount) : acc - Number(curr.amount);

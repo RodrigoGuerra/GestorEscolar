@@ -11,7 +11,7 @@ const SeletorEscolas: React.FC = () => {
   const setCurrentTenant = useTenantStore((state) => state.setCurrentTenant);
   const navigate = useNavigate();
 
-  const handleSelect = (escola: any) => {
+  const handleSelect = (escola: { id: string; name: string; schema: string }) => {
     setEscolaSelecionada(escola.id);
     setCurrentTenant(escola);
     navigate(`/escola/${escola.id}/painel`);

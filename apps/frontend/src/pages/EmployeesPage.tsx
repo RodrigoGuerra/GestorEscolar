@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -110,7 +110,7 @@ export default function EmployeesPage() {
   const token = useAuthStore(state => state.token);
   const tenant = useTenantStore(state => state.currentTenant);
 
-  const fetchEmployees = () => {
+  const fetchEmployees = useCallback(() => {
     if (!token || !tenant) return;
     setLoading(true);
     setError(null);
@@ -121,13 +121,11 @@ export default function EmployeesPage() {
         console.error('Failed to fetch employees', err);
       })
       .finally(() => setLoading(false));
-  };
+  }, [token, tenant]);
 
   useEffect(() => {
-    if (token && tenant) {
-      fetchEmployees();
-    }
-  }, [token, tenant]);
+    fetchEmployees();
+  }, [fetchEmployees]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,9 +176,9 @@ export default function EmployeesPage() {
         bankCode: '', agency: '', account: '', pixKey: ''
       });
       fetchEmployees();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to create employee', err);
-      setError(err.response?.data?.message || 'Erro ao contratar colaborador.');
+      setError((err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Erro ao contratar colaborador.');
     } finally {
       setSubmitting(false);
     }

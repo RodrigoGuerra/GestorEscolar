@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -12,7 +12,7 @@ interface ClassData {
   id: string;
   name: string;
   year: number;
-  students?: any[];
+  students?: { id: string }[];
 }
 
 export default function ClassesPage() {
@@ -30,7 +30,7 @@ export default function ClassesPage() {
   const tenant = useTenantStore(state => state.currentTenant);
   const { students, fetchStudents } = useStudentStore();
 
-  const fetchClasses = async () => {
+  const fetchClasses = useCallback(async () => {
     if (!token || !tenant) return;
     setLoading(true);
     setError(null);
@@ -43,14 +43,12 @@ export default function ClassesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, tenant]);
 
   useEffect(() => {
-    if (token && tenant) {
-      fetchClasses();
-      fetchStudents();
-    }
-  }, [token, tenant]);
+    fetchClasses();
+    fetchStudents();
+  }, [fetchClasses, fetchStudents]);
 
   const filteredClasses = useMemo(() => {
     return classes.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));

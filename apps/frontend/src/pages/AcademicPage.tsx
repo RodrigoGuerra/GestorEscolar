@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -23,7 +23,7 @@ export default function AcademicPage() {
 
   const token = useAuthStore(state => state.token);
 
-  const fetchSchools = () => {
+  const fetchSchools = useCallback(() => {
     if (!token) return;
     setLoading(true);
     setError(null);
@@ -34,13 +34,11 @@ export default function AcademicPage() {
         console.error('Failed to fetch schools', err);
       })
       .finally(() => setLoading(false));
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchSchools();
-    }
-  }, [token]);
+    fetchSchools();
+  }, [fetchSchools]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
