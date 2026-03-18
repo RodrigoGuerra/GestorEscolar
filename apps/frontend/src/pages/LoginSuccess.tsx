@@ -26,7 +26,7 @@ const LoginSuccess: React.FC = () => {
         setAuth(accessToken, {
           id: payload.sub,
           email: payload.email,
-          name: payload.email,
+          name: payload.name || payload.email,
           role: payload.role,
           tenants: payload.tenants,
         });

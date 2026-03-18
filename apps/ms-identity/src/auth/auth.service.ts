@@ -51,6 +51,7 @@ export class AuthService {
     const jwtPayload = {
       sub: user.id,
       email: user.email,
+      name: user.name,
       role: user.role,
       tenants: tenants.map(t => ({
         schema: t.franchiseSchema,

@@ -4,11 +4,15 @@ import { useTenantStore } from '../stores/tenantStore';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-/** Decode JWT payload without verification (safe — token came from our own server). */
+/** Decode JWT payload without verification (safe — token came from our own server).
+ *  Normalizes base64url → base64 before atob() since JWTs use base64url encoding. */
 export function decodeJwtPayload(token: string): Record<string, any> {
   try {
-    const base64 = token.split('.')[1];
-    return JSON.parse(atob(base64));
+    const raw = token.split('.')[1]
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const padded = raw.padEnd(raw.length + (4 - (raw.length % 4)) % 4, '=');
+    return JSON.parse(atob(padded));
   } catch {
     return {};
   }

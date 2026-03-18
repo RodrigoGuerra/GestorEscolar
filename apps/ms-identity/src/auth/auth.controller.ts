@@ -78,7 +78,9 @@ export class AuthController {
   }
 
   /**
-   * F3: Exchange the HttpOnly session cookie for an access token + user profile.
+   * F3: Return the authenticated user profile from the HttpOnly cookie session.
+   * Access token is NOT reflected in the response body (M2). Use POST /auth/refresh
+   * to obtain a new access token.
    */
   @Get('token')
   @UseGuards(AuthGuard('jwt'))
