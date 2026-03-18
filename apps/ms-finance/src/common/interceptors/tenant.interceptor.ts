@@ -7,11 +7,9 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
 import { Observable, from } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
 
 /** Allowed PostgreSQL schema names: lowercase letters, digits, underscores.
  *  Rejects anything that could escape a double-quoted identifier. */
@@ -19,39 +17,13 @@ const VALID_SCHEMA_RE = /^[a-z][a-z0-9_]{0,62}$/;
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
-  constructor(
-    private dataSource: DataSource,
-    private configService: ConfigService,
-  ) {}
+  constructor(private dataSource: DataSource) {}
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
-
-    // Verify JWT signature (defense in depth — Kong already validates upstream,
-    // but microservices must not blindly trust decoded payloads)
-    const authHeader = request.headers.authorization;
-    if (
-      authHeader &&
-      authHeader.startsWith('Bearer ') &&
-      authHeader !== 'Bearer undefined'
-    ) {
-      const token = authHeader.split(' ')[1];
-      const secret = this.configService.get<string>('JWT_SECRET');
-      let decoded: any;
-      try {
-        decoded = jwt.verify(token, secret!) as any;
-      } catch {
-        throw new UnauthorizedException('Invalid or expired token');
-      }
-      if (!decoded) {
-        throw new UnauthorizedException('Malformed token');
-      }
-      request.user = decoded;
-    }
-
     const user = request.user;
     const headerTenant = request.headers['x-tenant-id'];
 
