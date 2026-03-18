@@ -1,7 +1,7 @@
 import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { FranchiseTenant } from '../tenants/entities/franchise-tenant.entity';
 import { School } from '../tenants/entities/school.entity';
@@ -44,7 +44,7 @@ export class AuthService {
     const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
     const schoolIds = tenants.map(t => t.schoolId);
     const schools = schoolIds.length > 0
-      ? await this.schoolsRepository.findByIds(schoolIds)
+      ? await this.schoolsRepository.findBy({ id: In(schoolIds) })
       : [];
     const schoolMap = new Map(schools.map(s => [s.id, s.name]));
 
@@ -84,26 +84,4 @@ export class AuthService {
     await this.refreshTokenService.revoke(refreshToken);
   }
 
-  async login(user: any) {
-    const tenants = await this.tenantsRepository.find({ where: { userId: user.id } });
-    const schoolIds = tenants.map(t => t.schoolId);
-    const schools = schoolIds.length > 0
-      ? await this.schoolsRepository.findByIds(schoolIds)
-      : [];
-    const schoolMap = new Map(schools.map(s => [s.id, s.name]));
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      tenants: tenants.map(t => ({
-        schema: t.franchiseSchema,
-        schoolId: t.schoolId,
-        schoolName: schoolMap.get(t.schoolId) || t.schoolId,
-        role: t.role,
-      })),
-    };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-  }
 }

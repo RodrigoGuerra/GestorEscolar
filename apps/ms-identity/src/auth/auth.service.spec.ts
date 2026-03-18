@@ -29,7 +29,7 @@ describe('AuthService', () => {
   };
 
   const mockSchoolRepository = {
-    findByIds: jest.fn(),
+    findBy: jest.fn(),
   };
 
   const mockJwtService = {
@@ -80,7 +80,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce(preRegisteredUser)
         .mockResolvedValueOnce(activatedUser);
       tenantRepository.find.mockResolvedValue([{ franchiseSchema: 'schema1', schoolId: 'school1', role: 'teacher' }]);
-      schoolRepository.findByIds.mockResolvedValue([{ id: 'school1', name: 'School One' }]);
+      schoolRepository.findBy.mockResolvedValue([{ id: 'school1', name: 'School One' }]);
 
       const profile = { email: 'test@example.com', displayName: 'Test User', id: 'google-id' };
       const result = await service.validateOAuthUser(profile);
@@ -95,7 +95,7 @@ describe('AuthService', () => {
       const activeUser = { id: 'user-id', email: 'test@example.com', googleId: 'google-id', name: 'Test User', role: 'teacher' };
       userRepository.findOne.mockResolvedValue(activeUser);
       tenantRepository.find.mockResolvedValue([]);
-      schoolRepository.findByIds.mockResolvedValue([]);
+      schoolRepository.findBy.mockResolvedValue([]);
 
       const profile = { email: 'test@example.com', displayName: 'Test User', id: 'google-id' };
       await service.validateOAuthUser(profile);
@@ -107,7 +107,7 @@ describe('AuthService', () => {
       const user = { id: 'u1', email: 'a@b.com', googleId: 'g1', name: 'Alice', role: 'teacher' };
       userRepository.findOne.mockResolvedValue(user);
       tenantRepository.find.mockResolvedValue([{ franchiseSchema: 'schema1', schoolId: 'school-uuid', role: 'teacher' }]);
-      schoolRepository.findByIds.mockResolvedValue([{ id: 'school-uuid', name: 'Escola Alfa' }]);
+      schoolRepository.findBy.mockResolvedValue([{ id: 'school-uuid', name: 'Escola Alfa' }]);
 
       await service.validateOAuthUser({ email: 'a@b.com', displayName: 'Alice', id: 'g1' });
 
@@ -152,30 +152,4 @@ describe('AuthService', () => {
     });
   });
 
-  describe('login', () => {
-    it('should return an access_token with tenant info', async () => {
-      const user = { id: 'u1', email: 'a@b.com', role: 'admin' };
-      tenantRepository.find.mockResolvedValue([{ franchiseSchema: 'schema1', schoolId: 's1', role: 'admin' }]);
-      schoolRepository.findByIds.mockResolvedValue([{ id: 's1', name: 'School S1' }]);
-      mockJwtService.sign.mockReturnValue('login-token');
-
-      const result = await service.login(user);
-
-      expect(result.access_token).toBe('login-token');
-      expect(mockJwtService.sign).toHaveBeenCalledWith(
-        expect.objectContaining({ sub: 'u1', email: 'a@b.com' }),
-      );
-    });
-
-    it('should return an access_token when user has no tenants', async () => {
-      const user = { id: 'u2', email: 'b@c.com', role: 'teacher' };
-      tenantRepository.find.mockResolvedValue([]);
-      mockJwtService.sign.mockReturnValue('no-tenant-token');
-
-      const result = await service.login(user);
-
-      expect(result.access_token).toBe('no-tenant-token');
-      expect(schoolRepository.findByIds).not.toHaveBeenCalled();
-    });
-  });
 });
