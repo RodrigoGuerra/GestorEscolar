@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { randomBytes } from 'crypto';
@@ -8,6 +8,7 @@ const KEY_PREFIX = 'refresh:';
 
 @Injectable()
 export class RefreshTokenService implements OnModuleDestroy {
+  private readonly logger = new Logger(RefreshTokenService.name);
   private readonly redis: Redis;
 
   constructor(private readonly configService: ConfigService) {
@@ -21,7 +22,9 @@ export class RefreshTokenService implements OnModuleDestroy {
       lazyConnect: false,
     });
     // Prevent unhandled 'error' events from crashing the process during startup
-    this.redis.on('error', () => {});
+    this.redis.on('error', (err: Error) =>
+      this.logger.warn(`Redis error: ${err.message}`)
+    );
   }
 
   /** Generate a cryptographically random opaque token, store payload in Redis, return the token. */
