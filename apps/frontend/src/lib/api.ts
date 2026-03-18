@@ -4,6 +4,16 @@ import { useTenantStore } from '../stores/tenantStore';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+/** Decode JWT payload without verification (safe — token came from our own server). */
+export function decodeJwtPayload(token: string): Record<string, any> {
+  try {
+    const base64 = token.split('.')[1];
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
+}
+
 const api = axios.create({ baseURL: BASE_URL });
 
 api.interceptors.request.use((config) => {

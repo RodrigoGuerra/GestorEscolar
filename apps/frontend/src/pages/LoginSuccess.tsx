@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useTenantStore } from '../stores/tenantStore';
+import { decodeJwtPayload } from '../lib/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -10,24 +11,28 @@ const LoginSuccess: React.FC = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   useEffect(() => {
-    // F3: the backend now sets an HttpOnly cookie on redirect (no ?token= in URL).
-    // Exchange the cookie for an access token + user profile via a credentialed fetch.
-    fetch(`${API_URL}/auth/token`, { credentials: 'include' })
+    // M2: use POST /auth/refresh instead of GET /auth/token to avoid reflecting
+    // the HttpOnly cookie value into a readable response body.
+    fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    })
       .then((res) => {
         if (!res.ok) throw new Error('Authentication failed');
         return res.json();
       })
-      .then(({ accessToken, user }) => {
+      .then(({ accessToken }) => {
+        const payload = decodeJwtPayload(accessToken);
         setAuth(accessToken, {
-          id: user.userId,
-          email: user.email,
-          name: user.name || user.email,
-          role: user.role,
-          tenants: user.tenants,
+          id: payload.sub,
+          email: payload.email,
+          name: payload.email,
+          role: payload.role,
+          tenants: payload.tenants,
         });
 
-        if (user.tenants?.length > 0) {
-          const t = user.tenants[0];
+        if (payload.tenants?.length > 0) {
+          const t = payload.tenants[0];
           useTenantStore.getState().setCurrentTenant({
             id: t.schoolId,
             name: t.schoolName || t.schoolId,

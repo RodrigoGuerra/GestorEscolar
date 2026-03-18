@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Stores
 import { useAuthStore } from './stores/authStore';
 import { useTenantStore } from './stores/tenantStore';
+import { decodeJwtPayload } from './lib/api';
 
 // Layout & Components
 import MainLayout from './layout/MainLayout';
@@ -80,17 +81,22 @@ function App() {
   useEffect(() => {
     const { user, token, setAuth, clearAuth } = useAuthStore.getState();
     // If user data is persisted but token is absent (token is excluded from localStorage),
-    // try to restore the access token from the HttpOnly cookie.
+    // try to restore the access token via refresh — avoids reflecting the HttpOnly cookie
+    // value into a readable response body (M2).
     if (user && !token) {
-      fetch(`${API_URL}/auth/token`, { credentials: 'include' })
+      fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then(({ accessToken, user: freshUser }) => {
+        .then(({ accessToken }) => {
+          const payload = decodeJwtPayload(accessToken);
           setAuth(accessToken, {
-            id: freshUser.userId,
-            email: freshUser.email,
-            name: freshUser.name || freshUser.email,
-            role: freshUser.role,
-            tenants: freshUser.tenants,
+            id: payload.sub,
+            email: payload.email,
+            name: payload.email || user.name,
+            role: payload.role,
+            tenants: payload.tenants,
           });
         })
         .catch(() => clearAuth())
