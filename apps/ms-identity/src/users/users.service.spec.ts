@@ -97,6 +97,8 @@ describe('UsersService', () => {
         user_id: 'new-id',
         school_id: 'uuid',
       }));
+      expect(mockQueryRunner.connect).toHaveBeenCalled();
+      expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
     });
@@ -109,6 +111,7 @@ describe('UsersService', () => {
       const dto = { email: 'x@example.com', role: UserRole.TEACHER, schoolId: 'uuid', franchiseSchema: 'schema1', domainData: {} };
 
       await expect(service.provision(dto)).rejects.toThrow('DB error');
+      expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
     });
@@ -143,6 +146,7 @@ describe('UsersService', () => {
       const result = await service.updateProfile('u1', { name: 'New Name' });
 
       expect(userRepository.update).toHaveBeenCalledWith('u1', { name: 'New Name' });
+      expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: 'u1' } });
       expect(result).toEqual(updatedUser);
     });
   });
