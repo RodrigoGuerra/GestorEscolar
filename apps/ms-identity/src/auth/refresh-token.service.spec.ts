@@ -37,6 +37,11 @@ describe('RefreshTokenService', () => {
     mockRedis.del.mockResolvedValue(1);
     mockRedis.on.mockReturnValue(undefined);
     mockRedis.disconnect.mockReturnValue(undefined);
+    mockConfigService.get.mockImplementation((key: string) => {
+      if (key === 'REDIS_HOST') return 'localhost';
+      if (key === 'REDIS_PORT') return 6379;
+      return undefined;
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -90,7 +95,7 @@ describe('RefreshTokenService', () => {
     it('should throw UnauthorizedException when token does not exist in Redis', async () => {
       mockRedis.get.mockResolvedValue(null);
 
-      await expect(service.validate('expired-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.validate('expired-token')).rejects.toThrow('Refresh token invalid or expired');
     });
   });
 
@@ -108,7 +113,7 @@ describe('RefreshTokenService', () => {
     it('should throw UnauthorizedException when token is already consumed or expired', async () => {
       mockRedis.getdel.mockResolvedValue(null);
 
-      await expect(service.consume('used-token')).rejects.toThrow(UnauthorizedException);
+      await expect(service.consume('used-token')).rejects.toThrow('Refresh token invalid or expired');
     });
   });
 
