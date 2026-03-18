@@ -88,6 +88,7 @@ describe('AuthService', () => {
       expect(userRepository.update).toHaveBeenCalledWith('user-id', { googleId: 'google-id', name: 'Test User' });
       expect(result.accessToken).toBe('mock-access-token');
       expect(result.refreshToken).toBe('mock-refresh-token');
+      expect(result.user.name).toBe('Test User');
     });
 
     it('should not update if user is already activated', async () => {
@@ -164,6 +165,17 @@ describe('AuthService', () => {
       expect(mockJwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({ sub: 'u1', email: 'a@b.com' }),
       );
+    });
+
+    it('should return an access_token when user has no tenants', async () => {
+      const user = { id: 'u2', email: 'b@c.com', role: 'teacher' };
+      tenantRepository.find.mockResolvedValue([]);
+      mockJwtService.sign.mockReturnValue('no-tenant-token');
+
+      const result = await service.login(user);
+
+      expect(result.access_token).toBe('no-tenant-token');
+      expect(schoolRepository.findByIds).not.toHaveBeenCalled();
     });
   });
 });
