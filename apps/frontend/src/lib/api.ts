@@ -9,13 +9,20 @@ const api = axios.create({ baseURL: BASE_URL });
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   const tenant = useTenantStore.getState().currentTenant;
+  const user = useAuthStore.getState().user;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
   if (tenant) {
-    config.headers['x-tenant-id'] = tenant.schema;
+    // Derive schema from the JWT user.tenants array (not localStorage) to avoid
+    // persisting the internal PostgreSQL schema name in browser storage.
+    const tenantData = user?.tenants?.find((t) => t.id === tenant.id);
+    const schema = tenantData?.schema ?? (tenant as any).schema;
+    if (schema) {
+      config.headers['x-tenant-id'] = schema;
+    }
   }
 
   return config;

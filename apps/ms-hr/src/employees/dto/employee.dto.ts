@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID, IsEmail, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUUID, IsEmail, ValidateNested, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class BankDetailsDto {
@@ -60,6 +60,7 @@ export class CreateEmployeeDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: 'CPF deve estar no formato 000.000.000-00' })
   cpf: string;
 
   @IsString()

@@ -92,7 +92,9 @@ export class AuthController {
   /**
    * F24: Rotate refresh token — validates the opaque refresh_token cookie,
    * issues a new 15m access_token and a rotated refresh_token (30d in Redis).
+   * Strict throttle: max 5 requests per 10s, 15 per minute — prevents abuse.
    */
+  @Throttle({ short: { limit: 5, ttl: 10000 }, long: { limit: 15, ttl: 60000 } })
   @Post('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const token = (req as any).cookies?.[REFRESH_COOKIE];

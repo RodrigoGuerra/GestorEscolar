@@ -249,7 +249,7 @@ export default function EmployeesPage() {
     const cep = formData.cep.replace(/\D/g, '');
     if (cep.length === 8) {
       try {
-        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: AbortSignal.timeout(5000) });
         const data = await res.json();
         if (!data.erro) {
           setFormData(prev => ({

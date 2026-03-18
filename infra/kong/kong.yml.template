@@ -13,12 +13,23 @@ services:
   - name: ms-identity
     url: http://ms-identity:3001
     routes:
+      - name: identity-refresh-route
+        paths:
+          - /auth/refresh
+        strip_path: false
+        plugins:
+          # Stricter rate limit for token refresh endpoint — 10 per minute per IP
+          - name: rate-limiting
+            config:
+              minute: 10
+              policy: redis
+              redis_host: redis
+              redis_port: 6379
       - name: identity-public-route
         paths:
           - /auth/google
           - /auth/google/callback
           - /auth/token
-          - /auth/refresh
           - /auth/logout
         strip_path: false
         # Public routes — no JWT required (OAuth callback, token exchange, refresh, logout)
@@ -121,5 +132,14 @@ plugins:
       exposed_headers:
         - X-Auth-Token
         - Authorization
+        # x-tenant-id intentionally excluded — internal schema name must not be exposed to browser
       credentials: true
       max_age: 3600
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - "X-Content-Type-Options: nosniff"
+          - "X-Frame-Options: DENY"
+          - "Strict-Transport-Security: max-age=31536000; includeSubDomains"
+          - "Referrer-Policy: strict-origin-when-cross-origin"

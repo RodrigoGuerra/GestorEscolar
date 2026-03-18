@@ -20,6 +20,14 @@ export const useTenantStore = create<TenantState>()(
     }),
     {
       name: 'tenant-storage',
+      // Exclude schema from localStorage — it is an internal PostgreSQL schema name
+      // that should not be exposed to browser storage. schema is derived in-session
+      // from authStore.user.tenants and restored on page reload via the init effect.
+      partialize: (state) => ({
+        currentTenant: state.currentTenant
+          ? { id: state.currentTenant.id, name: state.currentTenant.name }
+          : null,
+      }),
     }
   )
 );

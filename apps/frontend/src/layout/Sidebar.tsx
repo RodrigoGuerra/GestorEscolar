@@ -7,7 +7,7 @@ import {
   Users, 
   CreditCard
 } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore, type UserRole } from '../stores/authStore';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -19,19 +19,21 @@ interface MenuItem {
   name: string;
   icon: React.ElementType;
   href: string;
-  roles: string[];
+  roles: UserRole[];
 }
+
+const MANAGER_ROLES: UserRole[] = ['GESTOR', 'ADMIN', 'MANAGER'];
 
 const Sidebar: React.FC = () => {
   const role = useAuthStore((state) => state.role);
 
   const menuItems: MenuItem[] = [
-    { name: 'Dashboard', icon: LayoutDashboard, href: '/', roles: ['GESTOR'] },
-    { name: 'Disciplina', icon: BookOpen, href: '/subjects', roles: ['GESTOR'] },
-    { name: 'Alunos', icon: Users, href: '/students', roles: ['GESTOR'] },
-    { name: 'Acadêmico', icon: School, href: '/academic', roles: ['GESTOR'] },
-    { name: 'Colaboradores', icon: Users, href: '/employees', roles: ['GESTOR'] },
-    { name: 'Financeiro', icon: CreditCard, href: '/finance', roles: ['GESTOR'] },
+    { name: 'Dashboard',     icon: LayoutDashboard, href: '/',          roles: MANAGER_ROLES },
+    { name: 'Disciplina',    icon: BookOpen,         href: '/subjects',  roles: MANAGER_ROLES },
+    { name: 'Alunos',        icon: Users,            href: '/students',  roles: MANAGER_ROLES },
+    { name: 'Acadêmico',     icon: School,           href: '/academic',  roles: MANAGER_ROLES },
+    { name: 'Colaboradores', icon: Users,            href: '/employees', roles: MANAGER_ROLES },
+    { name: 'Financeiro',    icon: CreditCard,       href: '/finance',   roles: MANAGER_ROLES },
   ];
 
   const filteredItems = menuItems.filter(item => role && item.roles.includes(role));

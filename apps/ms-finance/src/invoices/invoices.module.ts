@@ -9,7 +9,6 @@ import { TenantModule } from '../common/tenant/tenant.module';
 
 @Module({
   imports: [
-    // F16: CronService still needs @InjectRepository (no HTTP request context)
     TypeOrmModule.forFeature([Invoice]),
     ConfigModule,
     TenantModule,

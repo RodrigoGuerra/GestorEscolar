@@ -5,14 +5,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 /**
- * F11: Decodes the JWT from the Authorization header and populates request.user.
- * Does NOT verify the signature — Kong has already done that upstream.
+ * Decodes AND verifies the JWT from the Authorization header, then populates
+ * request.user. Using jwt.verify() here provides defense-in-depth: even if
+ * a request bypasses Kong, a forged token will be rejected.
  * Must run before RolesGuard.
  */
 @Injectable()
 export class JwtExtractGuard implements CanActivate {
+  constructor(private readonly configService: ConfigService) {}
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
@@ -26,13 +30,19 @@ export class JwtExtractGuard implements CanActivate {
       throw new UnauthorizedException('Missing token');
     }
 
-    const decoded = jwt.decode(token) as any;
-    if (!decoded) {
-      throw new UnauthorizedException('Malformed token');
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new UnauthorizedException('JWT secret not configured');
     }
 
-    // C1: include both `sub` and `userId` so IDOR checks (user.sub) work regardless
-    // of whether request.user was set here or later overwritten by TenantInterceptor
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, secret) as any;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+
+    // include both `sub` and `userId` so IDOR checks work regardless of source
     request.user = {
       sub: decoded.sub,
       userId: decoded.sub,

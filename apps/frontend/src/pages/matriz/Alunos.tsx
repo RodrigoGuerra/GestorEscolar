@@ -199,7 +199,7 @@ const Alunos: React.FC = () => {
     setCepLoading(true);
     setLocalError(null);
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: AbortSignal.timeout(5000) });
       const data = await response.json();
       
       if (data.erro) {

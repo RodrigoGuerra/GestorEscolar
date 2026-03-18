@@ -11,6 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import { Observable, from } from 'rxjs';
 import { finalize, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 
 /** Allowed PostgreSQL schema names: lowercase letters, digits, underscores.
  *  Rejects anything that could escape a double-quoted identifier. */
@@ -18,8 +19,10 @@ const VALID_SCHEMA_RE = /^[a-z][a-z0-9_]{0,62}$/;
 
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
-  // F10: DataSource only — Kong JWT plugin already verified the signature upstream
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    private configService: ConfigService,
+  ) {}
 
   async intercept(
     context: ExecutionContext,
@@ -27,7 +30,8 @@ export class TenantInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
 
-    // F10: decode only (no verify) — Kong has already validated the JWT signature and expiry
+    // Verify JWT signature (defense in depth — Kong already validates upstream,
+    // but microservices must not blindly trust decoded payloads)
     const authHeader = request.headers.authorization;
     if (
       authHeader &&
@@ -35,7 +39,13 @@ export class TenantInterceptor implements NestInterceptor {
       authHeader !== 'Bearer undefined'
     ) {
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.decode(token) as any;
+      const secret = this.configService.get<string>('JWT_SECRET');
+      let decoded: any;
+      try {
+        decoded = jwt.verify(token, secret!) as any;
+      } catch {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
       if (!decoded) {
         throw new UnauthorizedException('Malformed token');
       }
@@ -74,14 +84,12 @@ export class TenantInterceptor implements NestInterceptor {
           throw new ForbiddenException(`Access to tenant public is not authorized`);
         }
       } else {
+        // All roles (including admin/manager) must have the schema in their
+        // authorized tenant list — prevents tenant hopping attacks
         const authorized = authorizedTenants.find(
           (t: any) => t.schema === headerTenant,
         );
-        if (
-          !authorized &&
-          user.role?.toLowerCase() !== 'admin' &&
-          user.role?.toLowerCase() !== 'manager'
-        ) {
+        if (!authorized) {
           throw new ForbiddenException(
             `Access to tenant ${headerTenant} is not authorized`,
           );
@@ -121,7 +129,7 @@ export class TenantInterceptor implements NestInterceptor {
 
     return from(queryRunner.connect()).pipe(
       switchMap(async () => {
-        // F17: verify schema exists in pg_namespace to prevent tenant hopping by admins
+        // F17: verify schema exists in pg_namespace to prevent tenant hopping
         if (tenantSchema !== 'public') {
           const rows = await queryRunner.query(
             `SELECT nspname FROM pg_namespace WHERE nspname = $1`,
