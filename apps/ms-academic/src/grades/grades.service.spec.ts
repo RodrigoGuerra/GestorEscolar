@@ -7,8 +7,17 @@ import { Grade } from './entities/grade.entity';
 describe('GradesService', () => {
   let service: GradesService;
   let mockRepo: any;
+  let mockTenantRepo: any;
 
-  const mockGrade = { id: 'g1', value: 9.5, subject: { id: 's1', name: 'Math' } };
+  const mockGrade = {
+    id: 'g1',
+    studentId: 'stu-1',
+    classId: 'cls-1',
+    subjectId: 's1',
+    score: 9.5,
+    term: '1st Term',
+    subject: { id: 's1', name: 'Math' },
+  };
 
   beforeEach(async () => {
     mockRepo = {
@@ -20,7 +29,7 @@ describe('GradesService', () => {
       remove: jest.fn(),
     };
 
-    const mockTenantRepo = {
+    mockTenantRepo = {
       getRepository: jest.fn().mockReturnValue(mockRepo),
     };
 
@@ -36,13 +45,14 @@ describe('GradesService', () => {
 
   describe('create', () => {
     it('should create and save a grade', async () => {
-      const dto = { value: 9.5, subjectId: 's1' };
+      const dto = { studentId: 'stu-1', classId: 'cls-1', subjectId: 's1', score: 9.5, term: '1st Term' };
       const created = { ...dto, id: 'g1' };
       mockRepo.create.mockReturnValue(created);
       mockRepo.save.mockResolvedValue(created);
 
       const result = await service.create(dto as any);
 
+      expect(mockTenantRepo.getRepository).toHaveBeenCalledWith(Grade);
       expect(mockRepo.create).toHaveBeenCalledWith(dto);
       expect(mockRepo.save).toHaveBeenCalledWith(created);
       expect(result).toEqual(created);
@@ -73,14 +83,14 @@ describe('GradesService', () => {
     it('should throw NotFoundException when grade does not exist', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent')).rejects.toThrow('Grade with ID nonexistent not found');
     });
   });
 
   describe('update', () => {
     it('should update an existing grade and return the updated entity', async () => {
-      const dto = { value: 8.0 };
-      const updatedGrade = { ...mockGrade, value: 8.0 };
+      const dto = { score: 8.0 };
+      const updatedGrade = { ...mockGrade, score: 8.0 };
       mockRepo.findOne
         .mockResolvedValueOnce(mockGrade)
         .mockResolvedValueOnce(updatedGrade);
@@ -95,7 +105,7 @@ describe('GradesService', () => {
     it('should throw NotFoundException when updating non-existent grade', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update('bad-id', { value: 1 } as any)).rejects.toThrow(NotFoundException);
+      await expect(service.update('bad-id', { score: 1 } as any)).rejects.toThrow('Grade with ID bad-id not found');
     });
   });
 
@@ -106,6 +116,7 @@ describe('GradesService', () => {
 
       const result = await service.remove('g1');
 
+      expect(mockTenantRepo.getRepository).toHaveBeenCalledWith(Grade);
       expect(mockRepo.remove).toHaveBeenCalledWith(mockGrade);
       expect(result).toEqual({ deleted: true });
     });
@@ -113,7 +124,7 @@ describe('GradesService', () => {
     it('should throw NotFoundException when removing non-existent grade', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('bad-id')).rejects.toThrow('Grade with ID bad-id not found');
     });
   });
 });
