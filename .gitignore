@@ -37,3 +37,4 @@ yarn-error.log*
 dist
 node_modules
 infra/kong/kong.yml
+.claude/
