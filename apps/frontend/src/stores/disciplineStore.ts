@@ -29,8 +29,9 @@ export const useDisciplineStore = create<DisciplineState>((set) => ({
     try {
       const response = await api.get('/academic/subjects');
       set({ disciplinas: response.data, loading: false });
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message;
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const message = e.response?.data?.message || e.message || 'Erro desconhecido.';
       set({ error: message, loading: false });
     }
   },
@@ -43,8 +44,9 @@ export const useDisciplineStore = create<DisciplineState>((set) => ({
         disciplinas: [...state.disciplinas, response.data],
         loading: false 
       }));
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message;
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const message = e.response?.data?.message || e.message || 'Erro desconhecido.';
       set({ error: message, loading: false });
       throw new Error(message);
     }
@@ -58,8 +60,9 @@ export const useDisciplineStore = create<DisciplineState>((set) => ({
         disciplinas: state.disciplinas.map(d => d.id === id ? response.data : d),
         loading: false
       }));
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message;
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const message = e.response?.data?.message || e.message || 'Erro desconhecido.';
       set({ error: message, loading: false });
       throw new Error(message);
     }
@@ -73,8 +76,9 @@ export const useDisciplineStore = create<DisciplineState>((set) => ({
         disciplinas: state.disciplinas.filter(d => d.id !== id),
         loading: false
       }));
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message;
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const message = e.response?.data?.message || e.message || 'Erro desconhecido.';
       set({ error: message, loading: false });
       throw new Error(message);
     }

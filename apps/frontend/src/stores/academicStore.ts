@@ -46,7 +46,7 @@ export const useAcademicStore = create<AcademicState>((set, get) => ({
   loading: false,
   error: null,
 
-  fetchStudentData: async (_studentId: string) => {
+  fetchStudentData: async () => {
     set({ loading: true, error: null });
     try {
       const [gradesRes] = await Promise.all([
@@ -57,8 +57,9 @@ export const useAcademicStore = create<AcademicState>((set, get) => ({
         grades: gradesRes.data,
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 
@@ -67,8 +68,9 @@ export const useAcademicStore = create<AcademicState>((set, get) => ({
     try {
        const res = await api.get('/academic/classes');
        set({ classes: res.data, loading: false });
-    } catch (err: any) {
-       set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 

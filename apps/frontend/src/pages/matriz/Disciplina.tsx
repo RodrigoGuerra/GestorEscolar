@@ -113,9 +113,8 @@ const Disciplina: React.FC = () => {
       }
       setIsFormModalOpen(false);
       setEditingDisciplina(null);
-    } catch (err: any) {
-      // Message comes from store throw Error(message)
-      setLocalError(err.message);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : 'Erro desconhecido.');
     }
   };
 
@@ -133,8 +132,8 @@ const Disciplina: React.FC = () => {
         if (paginatedData.length === 1 && currentPage > 1) {
           setCurrentPage(prev => prev - 1);
         }
-      } catch (err: any) {
-        setLocalError(err.message);
+      } catch (err) {
+        setLocalError(err instanceof Error ? err.message : 'Erro desconhecido.');
       }
     }
   };

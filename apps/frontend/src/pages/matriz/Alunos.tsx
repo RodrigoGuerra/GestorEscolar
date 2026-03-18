@@ -186,8 +186,8 @@ const Alunos: React.FC = () => {
         await deleteStudent(deletingStudent.id);
         setIsDeleteModalOpen(false);
         setDeletingStudent(null);
-      } catch (err: any) {
-        setLocalError(err.message);
+      } catch (err) {
+        setLocalError(err instanceof Error ? err.message : 'Erro desconhecido.');
       }
     }
   };
@@ -216,7 +216,7 @@ const Alunos: React.FC = () => {
         city: data.localidade || prev.city,
         state: data.uf || prev.state,
       }));
-    } catch (err) {
+    } catch {
       setLocalError('Erro ao buscar CEP.');
     } finally {
       setCepLoading(false);
@@ -529,7 +529,7 @@ const Alunos: React.FC = () => {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-text-muted uppercase mb-2 block tracking-wider">Status</label>
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as any})} className="w-full bg-secondary border border-border rounded-xl p-3 text-white focus:border-primary outline-none appearance-none transition-all">
+                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE'})} className="w-full bg-secondary border border-border rounded-xl p-3 text-white focus:border-primary outline-none appearance-none transition-all">
                     <option value="ACTIVE">Ativo</option>
                     <option value="INACTIVE">Inativo</option>
                     <option value="SUSPENDED">Suspenso</option>

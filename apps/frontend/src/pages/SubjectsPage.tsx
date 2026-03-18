@@ -52,7 +52,7 @@ export default function SubjectsPage() {
     try {
       // Find a matrix school to satisfy backend requirement
       const schoolsRes = await api.get('/academic/schools');
-      const matrixSchool = schoolsRes.data.find((s: any) => s.isMatrix);
+      const matrixSchool = schoolsRes.data.find((s: { isMatrix: boolean; id: string }) => s.isMatrix);
       
       const payload = {
         ...formData,
