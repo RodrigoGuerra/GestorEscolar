@@ -1,4 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsObject, IsUUID, Matches } from 'class-validator';
+import { MaxObjectSize } from '../../common/validators/max-object-size.validator';
 
 export enum UserRole {
   MANAGER = 'MANAGER',
@@ -30,5 +31,6 @@ export class ProvisionUserDto {
 
   @IsObject()
   @IsNotEmpty()
+  @MaxObjectSize()
   domainData: Record<string, any>;
 }
