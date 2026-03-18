@@ -36,3 +36,4 @@ yarn-error.log*
 .nx
 dist
 node_modules
+infra/kong/kong.yml

@@ -100,7 +100,7 @@ plugins:
     config:
       # F13: restrict to known frontend origin — never wildcard with credentials: true
       origins:
-        - "http://localhost:5173"
+        - "${FRONTEND_URL}"
       methods:
         - GET
         - POST

@@ -22,20 +22,31 @@ if [ ! -f "$ROOT_DIR/.env" ]; then
   echo -e "${YELLOW}  ⚠  Edit apps/ms-identity/.env and set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET${NC}"
 fi
 
-# 1. Build and start all containers
-echo -e "${YELLOW}Step 1/3: Building and starting all containers...${NC}"
+# 1. Generate infra/kong/kong.yml from template (substitutes KONG_JWT_SECRET and FRONTEND_URL)
+echo -e "${YELLOW}Step 1/4: Generating Kong config from template...${NC}"
+KONG_JWT_SECRET=$(grep "^KONG_JWT_SECRET=" "$ROOT_DIR/.env" | cut -d'=' -f2-)
+FRONTEND_URL_VAL=$(grep "^FRONTEND_URL=" "$ROOT_DIR/.env" | cut -d'=' -f2-)
+sed \
+  -e "s|\${KONG_JWT_SECRET}|${KONG_JWT_SECRET}|g" \
+  -e "s|\${FRONTEND_URL}|${FRONTEND_URL_VAL}|g" \
+  "$ROOT_DIR/infra/kong/kong.yml.template" \
+  > "$ROOT_DIR/infra/kong/kong.yml"
+echo -e "${GREEN}  Kong config generated.${NC}"
+
+# 2. Build and start all containers
+echo -e "${YELLOW}Step 2/4: Building and starting all containers...${NC}"
 docker compose up -d --build
 
-# 2. Wait for PostgreSQL
-echo -e "${YELLOW}Step 2/3: Waiting for PostgreSQL...${NC}"
+# 3. Wait for PostgreSQL
+echo -e "${YELLOW}Step 3/4: Waiting for PostgreSQL...${NC}"
 until docker exec schooldb pg_isready -U admin -d gestor_escolar -q 2>/dev/null; do
   echo -e "${BLUE}  Waiting...${NC}"
   sleep 2
 done
 echo -e "${GREEN}  PostgreSQL ready!${NC}"
 
-# 3. Run migrations inside the ms-identity container (has typeorm-ts-node-commonjs)
-echo -e "${YELLOW}Step 3/3: Running TypeORM migrations...${NC}"
+# 4. Run migrations
+echo -e "${YELLOW}Step 4/4: Running TypeORM migrations...${NC}"
 for svc in ms-identity ms-academic ms-hr ms-finance; do
   echo -e "${BLUE}  → $svc${NC}"
 
