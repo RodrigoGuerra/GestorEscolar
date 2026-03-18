@@ -53,7 +53,12 @@ export const useAuthStore = create<AuthState>()(
       // on page reload via the init effect in App.tsx. This prevents XSS from reading
       // the access token from localStorage.
       partialize: (state) => ({
-        user: state.user,
+        user: state.user
+          ? {
+              ...state.user,
+              tenants: state.user.tenants?.map(({ id, name }) => ({ id, name })),
+            }
+          : null,
         role: state.role,
         unidadeAtual: state.unidadeAtual,
       }),
