@@ -33,8 +33,9 @@ export const useSchoolStore = create<SchoolState>((set, get) => ({
     try {
       const response = await api.get('/academic/schools');
       set({ schools: response.data, loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 
@@ -43,8 +44,9 @@ export const useSchoolStore = create<SchoolState>((set, get) => ({
     try {
       const response = await api.post('/academic/schools', school);
       set({ schools: [...get().schools, response.data], loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -57,8 +59,9 @@ export const useSchoolStore = create<SchoolState>((set, get) => ({
         schools: get().schools.map(s => s.id === id ? response.data : s),
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -71,8 +74,9 @@ export const useSchoolStore = create<SchoolState>((set, get) => ({
         schools: get().schools.filter(s => s.id !== id),
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -82,8 +86,9 @@ export const useSchoolStore = create<SchoolState>((set, get) => ({
     try {
       const response = await api.get(`/academic/schools/${schoolId}/metrics`);
       set({ metrics: response.data, loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 

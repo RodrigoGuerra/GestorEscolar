@@ -54,8 +54,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         transactions: transactionsRes.data, 
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 
@@ -64,8 +65,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     try {
       const response = await api.post('/finance/invoices', invoice);
       set({ invoices: [...get().invoices, response.data], loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -78,8 +80,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         invoices: get().invoices.map(i => i.id === id ? response.data : i),
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -89,8 +92,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     try {
       const response = await api.post('/finance/transactions', transaction);
       set({ transactions: [...get().transactions, response.data], loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },

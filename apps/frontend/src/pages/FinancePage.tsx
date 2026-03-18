@@ -35,6 +35,7 @@ export default function FinancePage() {
   }, [token, tenant]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTransactions();
   }, [fetchTransactions]);
 

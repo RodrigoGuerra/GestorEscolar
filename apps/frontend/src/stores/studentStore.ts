@@ -23,7 +23,7 @@ export interface IStudent {
   guardianEmail?: string;
   guardianPhone?: string;
   schoolId: string;
-  classes?: any[];
+  classes?: { id: string }[];
 }
 
 interface StudentState {
@@ -46,8 +46,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({
     try {
       const response = await api.get('/academic/students');
       set({ students: response.data, loading: false });
-    } catch (error: any) {
-      set({ error: error.message, loading: false });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Erro.', loading: false });
     }
   },
 
@@ -56,8 +56,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({
     try {
       const response = await api.post('/academic/students', student);
       set({ students: [...get().students, response.data], loading: false });
-    } catch (error: any) {
-      set({ error: error.message, loading: false });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Erro.', loading: false });
       throw error;
     }
   },
@@ -70,8 +70,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({
         students: get().students.map((s) => (s.id === id ? response.data : s)),
         loading: false,
       });
-    } catch (error: any) {
-      set({ error: error.message, loading: false });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Erro.', loading: false });
       throw error;
     }
   },
@@ -84,8 +84,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({
         students: get().students.filter((s) => s.id !== id),
         loading: false,
       });
-    } catch (error: any) {
-      set({ error: error.message, loading: false });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Erro.', loading: false });
       throw error;
     }
   },

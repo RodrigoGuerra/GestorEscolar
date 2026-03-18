@@ -70,14 +70,18 @@ function RoleSpecificOverview() {
 }
 
 function App() {
-  const [isRestoringSession, setIsRestoringSession] = useState(false);
+  // Initialize to true if we already know we need to restore the session,
+  // so we never call setIsRestoringSession(true) synchronously inside an effect.
+  const [isRestoringSession, setIsRestoringSession] = useState(() => {
+    const { user, token } = useAuthStore.getState();
+    return !!(user && !token);
+  });
 
   useEffect(() => {
     const { user, token, setAuth, clearAuth } = useAuthStore.getState();
     // If user data is persisted but token is absent (token is excluded from localStorage),
     // try to restore the access token from the HttpOnly cookie.
     if (user && !token) {
-      setIsRestoringSession(true);
       fetch(`${API_URL}/auth/token`, { credentials: 'include' })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then(({ accessToken, user: freshUser }) => {

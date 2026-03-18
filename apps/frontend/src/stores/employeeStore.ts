@@ -30,8 +30,9 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
     try {
       const response = await api.get('/hr/employees');
       set({ employees: response.data, loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
     }
   },
 
@@ -40,8 +41,9 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
     try {
       const response = await api.post('/hr/employees', employee);
       set({ employees: [...get().employees, response.data], loading: false });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -54,8 +56,9 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
         employees: get().employees.map(e => e.id === id ? response.data : e),
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
@@ -68,8 +71,9 @@ export const useEmployeeStore = create<EmployeeState>((set, get) => ({
         employees: get().employees.filter(e => e.id !== id),
         loading: false 
       });
-    } catch (err: any) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+    } catch (err) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      set({ error: e.response?.data?.message || e.message || 'Erro.', loading: false });
       throw err;
     }
   },
