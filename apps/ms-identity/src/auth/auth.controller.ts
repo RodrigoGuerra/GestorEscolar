@@ -83,6 +83,8 @@ export class AuthController {
   @Get('token')
   @UseGuards(AuthGuard('jwt'))
   getToken(@Req() req: any, @Res() res: Response) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
     const accessToken = req.cookies?.[ACCESS_COOKIE];
     return res.json({ accessToken, user: req.user });
   }
