@@ -1,26 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
+import { Logger } from '@nestjs/common';
 
 describe('AppController', () => {
-  let appController: AppController;
+  let controller: AppController;
 
   beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
-  });
-
-  it('should be defined', () => {
-    expect(appController).toBeDefined();
+    controller = module.get<AppController>(AppController);
   });
 
   describe('handleStudentOverdue', () => {
-    it('should handle the student.overdue event without throwing', () => {
-      const payload = { studentId: 'stu-1', invoiceId: 'inv-1' };
+    it('should log the overdue event', () => {
+      const data = { studentId: 'stu-1', invoiceId: 'inv-1' };
+      const loggerSpy = jest.spyOn(Logger.prototype, 'log');
 
-      expect(() => appController.handleStudentOverdue(payload)).not.toThrow();
+      controller.handleStudentOverdue(data);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Received student.overdue event'),
+      );
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Alerting student stu-1 about overdue invoice inv-1'),
+      );
     });
   });
 });
