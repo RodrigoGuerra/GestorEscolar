@@ -94,9 +94,13 @@ function App() {
           setAuth(accessToken, {
             id: payload.sub,
             email: payload.email,
-            name: payload.email || user.name,
-            role: payload.role,
-            tenants: payload.tenants,
+            name: payload.name || payload.email || user.name,
+            role: payload.role as import('./stores/authStore').UserRole,
+            tenants: payload.tenants?.map(t => ({
+              id: t.schoolId,
+              name: t.schoolName,
+              schema: t.schema,
+            })),
           });
         })
         .catch(() => clearAuth())

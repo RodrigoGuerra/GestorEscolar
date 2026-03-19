@@ -24,7 +24,7 @@ describe('schoolStore', () => {
 
   it('should fetch schools successfully', async () => {
     const mockSchools = [{ id: '1', name: 'Escola A' }];
-    (api.get as any).mockResolvedValueOnce({ data: mockSchools });
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockSchools });
 
     await useSchoolStore.getState().fetchSchools();
 
@@ -34,7 +34,7 @@ describe('schoolStore', () => {
   });
 
   it('should handle fetch schools error', async () => {
-    (api.get as any).mockRejectedValueOnce({ message: 'Network Error' });
+    vi.mocked(api.get).mockRejectedValueOnce({ message: 'Network Error' });
 
     await useSchoolStore.getState().fetchSchools();
 
@@ -43,11 +43,11 @@ describe('schoolStore', () => {
   });
 
   it('should add a school successfully', async () => {
-    const newSchool = { name: 'Escola New', cnpj: '123' };
+    const newSchool = { name: 'Escola New', cnpj: '123', isMatrix: false };
     const savedSchool = { id: '2', ...newSchool };
-    (api.post as any).mockResolvedValueOnce({ data: savedSchool });
+    vi.mocked(api.post).mockResolvedValueOnce({ data: savedSchool });
 
-    await useSchoolStore.getState().addSchool(newSchool as any);
+    await useSchoolStore.getState().addSchool(newSchool);
 
     expect(api.post).toHaveBeenCalledWith('/academic/schools', newSchool);
     expect(useSchoolStore.getState().schools).toContainEqual(savedSchool);
@@ -55,7 +55,7 @@ describe('schoolStore', () => {
 
   it('should fetch metrics successfully', async () => {
     const mockMetrics = { activeStudents: 10, classesCount: 2, eventsCount: 5 };
-    (api.get as any).mockResolvedValueOnce({ data: mockMetrics });
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockMetrics });
 
     await useSchoolStore.getState().fetchMetrics('1');
 

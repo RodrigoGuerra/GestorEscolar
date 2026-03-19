@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user
           ? {
               ...state.user,
-              tenants: state.user.tenants?.map(({ id, name }) => ({ id, name })),
+              tenants: state.user.tenants?.map(({ id, name, schema }) => ({ id, name, schema })),
             }
           : null,
         role: state.role,

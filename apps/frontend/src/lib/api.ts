@@ -4,17 +4,31 @@ import { useTenantStore } from '../stores/tenantStore';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  name?: string;
+  role: string;
+  tenants?: Array<{
+    id: string; // The backend uses 'id' for the school UUID in some parts, or 'schoolId'
+    schoolId: string;
+    schoolName: string;
+    schema: string;
+    role: string;
+  }>;
+}
+
 /** Decode JWT payload without verification (safe — token came from our own server).
  *  Normalizes base64url → base64 before atob() since JWTs use base64url encoding. */
-export function decodeJwtPayload(token: string): Record<string, any> {
+export function decodeJwtPayload(token: string): JwtPayload {
   try {
     const raw = token.split('.')[1]
       .replace(/-/g, '+')
       .replace(/_/g, '/');
     const padded = raw.padEnd(raw.length + (4 - (raw.length % 4)) % 4, '=');
-    return JSON.parse(atob(padded));
+    return JSON.parse(atob(padded)) as JwtPayload;
   } catch {
-    return {};
+    return {} as JwtPayload;
   }
 }
 

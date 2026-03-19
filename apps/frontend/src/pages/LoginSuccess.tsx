@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import type { UserRole } from '../stores/authStore';
 import { useTenantStore } from '../stores/tenantStore';
 import { decodeJwtPayload } from '../lib/api';
 
@@ -27,11 +28,15 @@ const LoginSuccess: React.FC = () => {
           id: payload.sub,
           email: payload.email,
           name: payload.name || payload.email,
-          role: payload.role,
-          tenants: payload.tenants,
+          role: payload.role as UserRole,
+          tenants: payload.tenants?.map(t => ({
+            id: t.schoolId,
+            name: t.schoolName,
+            schema: t.schema,
+          })),
         });
 
-        if (payload.tenants?.length > 0) {
+        if (payload.tenants && payload.tenants.length > 0) {
           const t = payload.tenants[0];
           useTenantStore.getState().setCurrentTenant({
             id: t.schoolId,
