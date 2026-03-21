@@ -2,8 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
@@ -79,12 +77,13 @@ export class Student {
   guardianPhone: string;
 
   // Multi-tenancy & Relationships
-  @Column({ name: 'school_id' })
-  schoolId: string;
-
-  @ManyToOne(() => School)
-  @JoinColumn({ name: 'school_id' })
-  school: School;
+  @ManyToMany(() => School, (school) => school.students)
+  @JoinTable({
+    name: 'student_schools',
+    joinColumn: { name: 'student_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'school_id', referencedColumnName: 'id' },
+  })
+  schools: School[];
 
   @ManyToMany(() => Class)
   @JoinTable({

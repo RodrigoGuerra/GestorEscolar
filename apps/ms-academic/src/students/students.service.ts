@@ -20,13 +20,13 @@ export class StudentsService {
   async findAll(): Promise<Student[]> {
     return this.tenantRepo
       .getRepository(Student)
-      .find({ relations: ['school', 'classes'] });
+      .find({ relations: ['schools', 'classes'] });
   }
 
   async findOne(id: string): Promise<Student> {
     const student = await this.tenantRepo.getRepository(Student).findOne({
       where: { id },
-      relations: ['school', 'classes'],
+      relations: ['schools', 'classes'],
     });
     if (!student) throw new NotFoundException(`Student with ID ${id} not found`);
     return student;

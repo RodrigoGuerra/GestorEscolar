@@ -5,7 +5,9 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  ManyToMany,
 } from 'typeorm';
+import { Student } from '../../students/entities/student.entity';
 
 @Entity({ name: 'schools' })
 export class School {
@@ -30,4 +32,7 @@ export class School {
 
   @OneToMany(() => School, (school) => school.parentSchool)
   branches: School[];
+
+  @ManyToMany(() => Student, (student) => student.schools)
+  students: Student[];
 }

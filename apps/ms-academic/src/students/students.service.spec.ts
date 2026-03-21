@@ -19,8 +19,7 @@ describe('StudentsService', () => {
     enrollmentNumber: 'MAT-2024-001',
     enrollmentDate: new Date('2024-02-01'),
     status: 'ACTIVE',
-    schoolId: 'school-1',
-    school: { id: 'school-1' } as any,
+    schools: [{ id: 'school-1' } as any],
     classes: [],
   };
 
@@ -56,7 +55,6 @@ describe('StudentsService', () => {
         phone: '11999990000',
         birthDate: '2000-01-15',
         enrollmentNumber: 'MAT-2024-001',
-        schoolId: 'school-1',
       };
       const created = { ...dto, id: 'stu-1' };
       mockRepo.create.mockReturnValue(created);
@@ -77,7 +75,7 @@ describe('StudentsService', () => {
 
       const result = await service.findAll();
 
-      expect(mockRepo.find).toHaveBeenCalledWith({ relations: ['school', 'classes'] });
+      expect(mockRepo.find).toHaveBeenCalledWith({ relations: ['schools', 'classes'] });
       expect(result).toEqual([mockStudent]);
     });
   });
@@ -90,7 +88,7 @@ describe('StudentsService', () => {
 
       expect(mockRepo.findOne).toHaveBeenCalledWith({
         where: { id: 'stu-1' },
-        relations: ['school', 'classes'],
+        relations: ['schools', 'classes'],
       });
       expect(result).toEqual(mockStudent);
     });

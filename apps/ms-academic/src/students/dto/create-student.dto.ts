@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsDateString,
-  IsUUID,
   ValidateIf,
   Matches,
 } from 'class-validator';
@@ -89,7 +88,4 @@ export class CreateStudentDto {
   @IsOptional()
   guardianPhone?: string;
 
-  @IsUUID()
-  @IsNotEmpty()
-  schoolId: string;
 }
