@@ -23,8 +23,10 @@ export default function ClassesPage() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const selectedClass = classes.find(c => c.id === selectedClassId) ?? null;
   const [formData, setFormData] = useState({ name: '', year: new Date().getFullYear() });
+  const [studentSearch, setStudentSearch] = useState('');
   
   const token = useAuthStore(state => state.token);
   const tenant = useTenantStore(state => state.currentTenant);
@@ -75,6 +77,24 @@ export default function ClassesPage() {
       console.error('Error assigning student', err);
     }
   };
+
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!selectedClass) return;
+    try {
+      await api.delete(`/academic/classes/${selectedClass.id}/students/${studentId}`);
+      fetchClasses();
+    } catch (err) {
+      console.error('Error removing student', err);
+    }
+  };
+
+  const filteredModalStudents = useMemo(() => {
+    if (!studentSearch) return students;
+    return students.filter(s =>
+      s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      s.enrollmentNumber.toLowerCase().includes(studentSearch.toLowerCase())
+    );
+  }, [students, studentSearch]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -137,9 +157,9 @@ export default function ClassesPage() {
               <Button 
                 variant="secondary" 
                 className="flex-1 text-xs py-2 h-9"
-                onClick={() => { setSelectedClass(c); setIsAssignModalOpen(true); }}
+                onClick={() => { setSelectedClassId(c.id); setIsAssignModalOpen(true); }}
               >
-                Matricular Alunos
+                Gerenciar Alunos
               </Button>
             </div>
           </Card>
@@ -176,34 +196,69 @@ export default function ClassesPage() {
         </form>
       </Modal>
 
-      {/* Assign Student Modal */}
-      <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title={`Matricular Alunos - ${selectedClass?.name}`}>
-        <div className="space-y-6">
-          <p className="text-text-secondary text-sm">Selecione alunos da rede para matricular nesta turma.</p>
-          
-          <div className="max-h-96 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-             {students.map(student => {
-               const isAlreadyAssigned = selectedClass?.students?.some(s => s.id === student.id);
-               return (
-                 <div key={student.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
-                   <div>
-                     <p className="text-sm font-bold text-white uppercase">{student.name}</p>
-                     <p className="text-[10px] text-text-muted uppercase font-black">{student.enrollmentNumber}</p>
-                   </div>
-                   <Button 
-                    variant={isAlreadyAssigned ? 'secondary' : 'outline'}
-                    className="text-[10px] h-8 px-4"
-                    disabled={isAlreadyAssigned}
-                    onClick={() => handleAssignStudent(student.id)}
-                   >
-                     {isAlreadyAssigned ? 'Matriculado' : 'Matricular'}
-                   </Button>
-                 </div>
-               );
-             })}
+      {/* Manage Students Modal */}
+      <Modal
+        isOpen={isAssignModalOpen}
+        onClose={() => { setIsAssignModalOpen(false); setStudentSearch(''); }}
+        title={`Gerenciar Alunos - ${selectedClass?.name}`}
+        maxWidth="max-w-xl"
+      >
+        <div className="space-y-4">
+          <p className="text-text-secondary text-sm">
+            Matricule ou desmatricule alunos cadastrados nesta turma.
+          </p>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+            <input
+              type="text"
+              placeholder="Buscar aluno..."
+              value={studentSearch}
+              onChange={(e) => setStudentSearch(e.target.value)}
+              className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary outline-none transition-all"
+            />
           </div>
 
-          <Button variant="secondary" className="w-full" onClick={() => setIsAssignModalOpen(false)}>Fechar</Button>
+          <div className="max-h-96 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {filteredModalStudents.length === 0 ? (
+              <p className="text-text-muted text-sm italic text-center py-6">Nenhum aluno encontrado.</p>
+            ) : filteredModalStudents.map(student => {
+              const isAssigned = selectedClass?.students?.some(s => s.id === student.id);
+              return (
+                <div key={student.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                  <div>
+                    <p className="text-sm font-bold text-white uppercase">{student.name}</p>
+                    <p className="text-[10px] text-text-muted uppercase font-black">{student.enrollmentNumber}</p>
+                  </div>
+                  {isAssigned ? (
+                    <Button
+                      variant="danger"
+                      className="text-[10px] h-8 px-4"
+                      onClick={() => handleRemoveStudent(student.id)}
+                    >
+                      Desmatricular
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="text-[10px] h-8 px-4"
+                      onClick={() => handleAssignStudent(student.id)}
+                    >
+                      Matricular
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => { setIsAssignModalOpen(false); setStudentSearch(''); }}
+          >
+            Fechar
+          </Button>
         </div>
       </Modal>
     </div>
