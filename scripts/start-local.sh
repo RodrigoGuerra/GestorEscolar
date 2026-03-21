@@ -71,7 +71,7 @@ echo -e "${GREEN}===============================================================
 echo -e "${GREEN}✅ GestorEscolar is running!${NC}"
 echo -e "${GREEN}================================================================${NC}"
 printf "%-22s | %s\n" "API Gateway (Kong)"  "http://localhost:8000"
-printf "%-22s | %s\n" "Frontend"            "http://localhost:5173  (if running locally)"
+printf "%-22s | %s\n" "Frontend"            "http://localhost:5173"
 printf "%-22s | %s\n" "RabbitMQ UI"         "http://localhost:15672"
 printf "%-22s | %s\n" "Grafana"             "http://localhost:3000"
 echo -e "${GREEN}================================================================${NC}"

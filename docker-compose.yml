@@ -182,6 +182,19 @@ services:
     networks:
       - gestor-net
 
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - kong
+    networks:
+      - gestor-net
+
 volumes:
   pgdata:
 
