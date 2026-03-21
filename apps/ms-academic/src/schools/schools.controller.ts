@@ -51,4 +51,25 @@ export class SchoolsController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.schoolsService.remove(id);
   }
+
+  @Get(':id/students')
+  getStudents(@Param('id', ParseUUIDPipe) id: string) {
+    return this.schoolsService.getStudents(id);
+  }
+
+  @Post(':id/students')
+  addStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('studentId', ParseUUIDPipe) studentId: string,
+  ) {
+    return this.schoolsService.addStudent(id, studentId);
+  }
+
+  @Delete(':id/students/:studentId')
+  removeStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+  ) {
+    return this.schoolsService.removeStudent(id, studentId);
+  }
 }
