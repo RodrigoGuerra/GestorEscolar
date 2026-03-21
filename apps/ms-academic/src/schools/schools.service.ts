@@ -136,6 +136,44 @@ export class SchoolsService {
     await schoolRepo.remove(school);
   }
 
+  async getStudents(schoolId: string): Promise<School> {
+    const school = await this.tenantRepo.getRepository(School).findOne({
+      where: { id: schoolId },
+      relations: ['students'],
+    });
+    if (!school) throw new NotFoundException('School not found');
+    return school;
+  }
+
+  async addStudent(schoolId: string, studentId: string): Promise<School> {
+    const repo = this.tenantRepo.getRepository(School);
+    const school = await repo.findOne({
+      where: { id: schoolId },
+      relations: ['students'],
+    });
+    if (!school) throw new NotFoundException('School not found');
+    if (school.students.some((s) => s.id === studentId)) {
+      throw new ConflictException('Student already associated with this school');
+    }
+    school.students.push({ id: studentId } as any);
+    return repo.save(school);
+  }
+
+  async removeStudent(schoolId: string, studentId: string): Promise<School> {
+    const repo = this.tenantRepo.getRepository(School);
+    const school = await repo.findOne({
+      where: { id: schoolId },
+      relations: ['students'],
+    });
+    if (!school) throw new NotFoundException('School not found');
+    const index = school.students.findIndex((s) => s.id === studentId);
+    if (index === -1) {
+      throw new NotFoundException('Student not associated with this school');
+    }
+    school.students.splice(index, 1);
+    return repo.save(school);
+  }
+
   async getSchoolMetrics(schoolId: string) {
     const classesCount = await this.tenantRepo
       .getRepository(Class)
