@@ -18,7 +18,7 @@ const SchoolAlunos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ASSOCIATED' | 'UNASSOCIATED'>('ALL');
 
   const fetchSchoolStudents = async () => {
     if (!schoolId) return;
@@ -60,6 +60,8 @@ const SchoolAlunos: React.FC = () => {
     let list = students;
     if (statusFilter === 'ACTIVE') list = list.filter((s) => s.status === 'ACTIVE');
     else if (statusFilter === 'INACTIVE') list = list.filter((s) => s.status !== 'ACTIVE');
+    else if (statusFilter === 'ASSOCIATED') list = list.filter((s) => schoolStudents.some((ss) => ss.id === s.id));
+    else if (statusFilter === 'UNASSOCIATED') list = list.filter((s) => !schoolStudents.some((ss) => ss.id === s.id));
     if (!studentSearch) return list;
     const term = studentSearch.toLowerCase();
     return list.filter(
@@ -67,7 +69,7 @@ const SchoolAlunos: React.FC = () => {
         s.name.toLowerCase().includes(term) ||
         s.enrollmentNumber.toLowerCase().includes(term),
     );
-  }, [students, studentSearch, statusFilter]);
+  }, [students, studentSearch, statusFilter, schoolStudents]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -116,18 +118,26 @@ const SchoolAlunos: React.FC = () => {
                 className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary outline-none transition-all"
               />
             </div>
-            <div className="flex gap-1 p-1 bg-secondary rounded-xl border border-border">
-              {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((f) => (
+            <div className="flex gap-1 p-1 bg-secondary rounded-xl border border-border flex-wrap">
+              {(
+                [
+                  { value: 'ALL', label: 'Todos' },
+                  { value: 'ACTIVE', label: 'Ativos' },
+                  { value: 'INACTIVE', label: 'Inativos' },
+                  { value: 'ASSOCIATED', label: 'Associados' },
+                  { value: 'UNASSOCIATED', label: 'Não Associados' },
+                ] as const
+              ).map(({ value, label }) => (
                 <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
+                  key={value}
+                  onClick={() => setStatusFilter(value)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    statusFilter === f
+                    statusFilter === value
                       ? 'bg-primary text-white'
                       : 'text-text-muted hover:text-white'
                   }`}
                 >
-                  {f === 'ALL' ? 'Todos' : f === 'ACTIVE' ? 'Ativos' : 'Inativos'}
+                  {label}
                 </button>
               ))}
             </div>
