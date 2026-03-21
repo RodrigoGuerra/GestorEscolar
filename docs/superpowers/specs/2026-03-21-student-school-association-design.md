@@ -73,20 +73,26 @@ All three inherit the class-level `@Roles(ADMIN, MANAGER, GESTOR)` already on `S
 
 ```typescript
 getStudents(schoolId: string): Promise<School>
-// findOne with relations: ['students'], returns school with students array
+// repo.findOne({ where: { id: schoolId }, relations: ['students'] })
+// NOTE: do NOT use this.findOne(schoolId) — that loads ['branches','parentSchool'], not 'students'
+// throws NotFoundException if school not found
+// returns school entity (students array carries the associated students)
 
 addStudent(schoolId: string, studentId: string): Promise<School>
-// findOne with relations: ['students']
+// repo.findOne({ where: { id: schoolId }, relations: ['students'] })
+// throws NotFoundException if school not found
 // throws ConflictException if student already associated
 // pushes { id: studentId } to school.students, saves
 
 removeStudent(schoolId: string, studentId: string): Promise<School>
-// findOne with relations: ['students']
+// repo.findOne({ where: { id: schoolId }, relations: ['students'] })
+// throws NotFoundException if school not found
 // throws NotFoundException if student not in school
 // splices student from array, saves
 ```
 
 Pattern mirrors `ClassesService.assignStudent` / `ClassesService.removeStudent` exactly.
+All three methods call `this.tenantRepo.getRepository(School).findOne(...)` directly — never `this.findOne()` which loads different relations.
 
 ### Changed — `StudentsService`
 
@@ -100,10 +106,17 @@ Pattern mirrors `ClassesService.assignStudent` / `ClassesService.removeStudent` 
 
 ### `Alunos.tsx` (`apps/frontend/src/pages/matriz/Alunos.tsx`)
 
-- Remove `schoolId` from `formData` initial state and from the `IStudent` omit type
+- Remove `schoolId` from `formData` initial state and from the `IStudent` omit type (line 49)
 - Remove the "Unidade Principal" read-only field block (lines ~539–542)
 - Remove the `matrixSchool` useEffect that auto-sets `schoolId` (lines ~81–85)
-- `IStudent` in `studentStore.ts`: remove `schoolId: string`, add `schools?: { id: string }[]`
+- Remove the `matrixSchool` derived constant (line 79): `const matrixSchool = useMemo(() => schools.find(s => s.isMatrix), [schools])`
+- Remove `fetchSchools` from the initial `useEffect` (line 77) and remove `useSchoolStore` import — both become dead code once `schoolId` is gone
+- Remove `schoolId: matrixSchool?.id || ''` from `handleOpenFormModal`'s new-student branch (line ~154)
+
+### `studentStore.ts` (`apps/frontend/src/stores/studentStore.ts`)
+
+- `IStudent` interface: remove `schoolId: string`, add `schools?: { id: string }[]`
+- `StudentState.addStudent` signature: update the `Omit` type to exclude `schoolId` from the parameter (currently `Omit<IStudent, 'id' | 'enrollmentDate' | 'classes'>` — `schoolId` removal from `IStudent` will automatically remove it, but verify the store's `addStudent` implementation no longer passes `schoolId` to the API)
 
 ### `SchoolAlunos.tsx` (`apps/frontend/src/pages/escola/gestor/SchoolAlunos.tsx`)
 
