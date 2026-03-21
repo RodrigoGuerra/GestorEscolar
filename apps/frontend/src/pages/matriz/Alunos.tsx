@@ -4,7 +4,6 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { Plus, Users, Search, Edit2, Trash2, ChevronLeft, ChevronRight, AlertTriangle, Loader2, Mail, Phone, MapPin, User as UserIcon } from 'lucide-react';
 import { useStudentStore, type IStudent } from '../../stores/studentStore';
-import { useSchoolStore } from '../../stores/schoolStore';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -35,8 +34,6 @@ const Alunos: React.FC = () => {
     deleteStudent 
   } = useStudentStore();
 
-  const { schools, fetchSchools } = useSchoolStore();
-
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -46,7 +43,7 @@ const Alunos: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<IStudent | null>(null);
   const [deletingStudent, setDeletingStudent] = useState<IStudent | null>(null);
   
-  const [formData, setFormData] = useState<Omit<IStudent, 'id' | 'enrollmentDate' | 'classes'>>({
+  const [formData, setFormData] = useState<Omit<IStudent, 'id' | 'enrollmentDate' | 'classes' | 'schools'>>({
     name: '',
     email: '',
     cpf: '',
@@ -65,7 +62,6 @@ const Alunos: React.FC = () => {
     guardianCpf: '',
     guardianEmail: '',
     guardianPhone: '',
-    schoolId: '',
   });
 
   const [localError, setLocalError] = useState<string | null>(null);
@@ -73,16 +69,7 @@ const Alunos: React.FC = () => {
 
   useEffect(() => {
     fetchStudents();
-    fetchSchools();
-  }, [fetchStudents, fetchSchools]);
-
-  const matrixSchool = useMemo(() => schools.find(s => s.isMatrix), [schools]);
-
-  useEffect(() => {
-    if (matrixSchool && !formData.schoolId) {
-      setFormData(prev => ({ ...prev, schoolId: matrixSchool.id }));
-    }
-  }, [matrixSchool, formData.schoolId]);
+  }, [fetchStudents]);
 
   const filteredData = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -128,7 +115,6 @@ const Alunos: React.FC = () => {
         guardianCpf: student.guardianCpf || '',
         guardianEmail: student.guardianEmail || '',
         guardianPhone: student.guardianPhone || '',
-        schoolId: student.schoolId,
       });
     } else {
       setEditingStudent(null);
@@ -151,7 +137,6 @@ const Alunos: React.FC = () => {
         guardianCpf: '',
         guardianEmail: '',
         guardianPhone: '',
-        schoolId: matrixSchool?.id || '',
       });
     }
     setIsFormModalOpen(true);
@@ -535,10 +520,6 @@ const Alunos: React.FC = () => {
                     <option value="SUSPENDED">Suspenso</option>
                   </select>
                 </div>
-              </div>
-              <div>
-                 <label className="text-xs font-bold text-text-muted uppercase mb-2 block tracking-wider">Unidade Principal</label>
-                 <input disabled value={matrixSchool?.name || 'Não definida'} className="w-full bg-secondary/50 border border-border rounded-xl p-3 text-text-muted cursor-not-allowed" />
               </div>
             </div>
           </div>

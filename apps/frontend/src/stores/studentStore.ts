@@ -22,7 +22,7 @@ export interface IStudent {
   guardianCpf?: string;
   guardianEmail?: string;
   guardianPhone?: string;
-  schoolId: string;
+  schools?: { id: string }[];
   classes?: { id: string }[];
 }
 
@@ -31,7 +31,7 @@ interface StudentState {
   loading: boolean;
   error: string | null;
   fetchStudents: () => Promise<void>;
-  addStudent: (student: Omit<IStudent, 'id' | 'enrollmentDate' | 'classes'>) => Promise<void>;
+  addStudent: (student: Omit<IStudent, 'id' | 'enrollmentDate' | 'classes' | 'schools'>) => Promise<void>;
   updateStudent: (id: string, student: Partial<IStudent>) => Promise<void>;
   deleteStudent: (id: string) => Promise<void>;
 }
