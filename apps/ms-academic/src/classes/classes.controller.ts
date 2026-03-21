@@ -53,4 +53,12 @@ export class ClassesController {
   ) {
     return this.classesService.assignStudent(id, studentId);
   }
+
+  @Delete(':id/students/:studentId')
+  removeStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+  ) {
+    return this.classesService.removeStudent(id, studentId);
+  }
 }
