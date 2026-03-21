@@ -179,8 +179,15 @@ export class SchoolsService {
       .getRepository(Class)
       .count({ where: { schoolId } });
 
+    const school = await this.tenantRepo.getRepository(School).findOne({
+      where: { id: schoolId },
+      relations: ['students'],
+    });
+    const activeStudents =
+      school?.students.filter((s) => s.status === 'ACTIVE').length ?? 0;
+
     return {
-      activeStudents: 0,
+      activeStudents,
       classesCount,
       eventsCount: 0,
     };

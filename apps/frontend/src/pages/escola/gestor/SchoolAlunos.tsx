@@ -18,6 +18,7 @@ const SchoolAlunos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
   const fetchSchoolStudents = async () => {
     if (!schoolId) return;
@@ -56,14 +57,17 @@ const SchoolAlunos: React.FC = () => {
   };
 
   const filteredStudents = useMemo(() => {
-    if (!studentSearch) return students;
+    let list = students;
+    if (statusFilter === 'ACTIVE') list = list.filter((s) => s.status === 'ACTIVE');
+    else if (statusFilter === 'INACTIVE') list = list.filter((s) => s.status !== 'ACTIVE');
+    if (!studentSearch) return list;
     const term = studentSearch.toLowerCase();
-    return students.filter(
+    return list.filter(
       (s) =>
         s.name.toLowerCase().includes(term) ||
         s.enrollmentNumber.toLowerCase().includes(term),
     );
-  }, [students, studentSearch]);
+  }, [students, studentSearch, statusFilter]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -98,18 +102,35 @@ const SchoolAlunos: React.FC = () => {
             </div>
           </div>
 
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Buscar aluno..."
-              value={studentSearch}
-              onChange={(e) => setStudentSearch(e.target.value)}
-              className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary outline-none transition-all"
-            />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Buscar aluno..."
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-primary outline-none transition-all"
+              />
+            </div>
+            <div className="flex gap-1 p-1 bg-secondary rounded-xl border border-border">
+              {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setStatusFilter(f)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    statusFilter === f
+                      ? 'bg-primary text-white'
+                      : 'text-text-muted hover:text-white'
+                  }`}
+                >
+                  {f === 'ALL' ? 'Todos' : f === 'ACTIVE' ? 'Ativos' : 'Inativos'}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="overflow-x-auto">
