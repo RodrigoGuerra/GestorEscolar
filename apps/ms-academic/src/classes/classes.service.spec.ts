@@ -62,7 +62,9 @@ describe('ClassesService', () => {
 
       const result = await service.findAll();
 
-      expect(mockRepo.find).toHaveBeenCalledWith({ relations: ['school', 'students'] });
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        relations: ['school', 'students'],
+      });
       expect(result).toEqual([mockClass]);
     });
   });
@@ -110,14 +112,16 @@ describe('ClassesService', () => {
       const studentId = 'stu-1';
       const classWithNoStudents = { ...mockClass, students: [] };
       const classWithStudent = { ...mockClass, students: [{ id: studentId }] };
-      
+
       mockRepo.findOne.mockResolvedValue(classWithNoStudents);
       mockRepo.save.mockResolvedValue(classWithStudent);
 
       const result = await service.assignStudent('cls-1', studentId);
 
       expect(mockRepo.save).toHaveBeenCalled();
-      expect(result.students).toContainEqual(expect.objectContaining({ id: studentId }));
+      expect(result.students).toContainEqual(
+        expect.objectContaining({ id: studentId }),
+      );
     });
 
     it('should throw ConflictException if student already assigned', async () => {
@@ -146,7 +150,9 @@ describe('ClassesService', () => {
       expect(mockRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ students: [] }),
       );
-      expect(result.students).not.toContainEqual(expect.objectContaining({ id: studentId }));
+      expect(result.students).not.toContainEqual(
+        expect.objectContaining({ id: studentId }),
+      );
     });
 
     it('should throw NotFoundException if student is not assigned to class', async () => {
@@ -161,9 +167,9 @@ describe('ClassesService', () => {
     it('should throw NotFoundException if class does not exist', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeStudent('nonexistent', 'stu-1')).rejects.toThrow(
-        'Class not found',
-      );
+      await expect(
+        service.removeStudent('nonexistent', 'stu-1'),
+      ).rejects.toThrow('Class not found');
     });
   });
 });

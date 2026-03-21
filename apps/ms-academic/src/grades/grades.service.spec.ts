@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
 import { Grade } from './entities/grade.entity';
@@ -45,7 +44,13 @@ describe('GradesService', () => {
 
   describe('create', () => {
     it('should create and save a grade', async () => {
-      const dto = { studentId: 'stu-1', classId: 'cls-1', subjectId: 's1', score: 9.5, term: '1st Term' };
+      const dto = {
+        studentId: 'stu-1',
+        classId: 'cls-1',
+        subjectId: 's1',
+        score: 9.5,
+        term: '1st Term',
+      };
       const created = { ...dto, id: 'g1' };
       mockRepo.create.mockReturnValue(created);
       mockRepo.save.mockResolvedValue(created);
@@ -76,14 +81,19 @@ describe('GradesService', () => {
 
       const result = await service.findOne('g1');
 
-      expect(mockRepo.findOne).toHaveBeenCalledWith({ where: { id: 'g1' }, relations: ['subject'] });
+      expect(mockRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'g1' },
+        relations: ['subject'],
+      });
       expect(result).toEqual(mockGrade);
     });
 
     it('should throw NotFoundException when grade does not exist', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent')).rejects.toThrow('Grade with ID nonexistent not found');
+      await expect(service.findOne('nonexistent')).rejects.toThrow(
+        'Grade with ID nonexistent not found',
+      );
     });
   });
 
@@ -105,7 +115,9 @@ describe('GradesService', () => {
     it('should throw NotFoundException when updating non-existent grade', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update('bad-id', { score: 1 } as any)).rejects.toThrow('Grade with ID bad-id not found');
+      await expect(
+        service.update('bad-id', { score: 1 } as any),
+      ).rejects.toThrow('Grade with ID bad-id not found');
     });
   });
 
@@ -124,7 +136,9 @@ describe('GradesService', () => {
     it('should throw NotFoundException when removing non-existent grade', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.remove('bad-id')).rejects.toThrow('Grade with ID bad-id not found');
+      await expect(service.remove('bad-id')).rejects.toThrow(
+        'Grade with ID bad-id not found',
+      );
     });
   });
 });

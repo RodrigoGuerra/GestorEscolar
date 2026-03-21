@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
 import { Student } from './entities/student.entity';
@@ -75,7 +74,9 @@ describe('StudentsService', () => {
 
       const result = await service.findAll();
 
-      expect(mockRepo.find).toHaveBeenCalledWith({ relations: ['schools', 'classes'] });
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        relations: ['schools', 'classes'],
+      });
       expect(result).toEqual([mockStudent]);
     });
   });
@@ -111,16 +112,18 @@ describe('StudentsService', () => {
 
       const result = await service.update('stu-1', dto as any);
 
-      expect(mockRepo.save).toHaveBeenCalledWith(Object.assign(mockStudent, dto));
+      expect(mockRepo.save).toHaveBeenCalledWith(
+        Object.assign(mockStudent, dto),
+      );
       expect(result).toEqual(updatedStudent);
     });
 
     it('should throw NotFoundException when updating non-existent student', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update('bad-id', { phone: '11000000000' } as any)).rejects.toThrow(
-        'Student with ID bad-id not found',
-      );
+      await expect(
+        service.update('bad-id', { phone: '11000000000' } as any),
+      ).rejects.toThrow('Student with ID bad-id not found');
     });
   });
 

@@ -20,7 +20,9 @@ import { EntityTarget, ObjectLiteral, QueryRunner, Repository } from 'typeorm';
 export class TenantRepositoryService {
   constructor(@Inject(REQUEST) private readonly request: Record<string, any>) {}
 
-  getRepository<T extends ObjectLiteral>(entity: EntityTarget<T>): Repository<T> {
+  getRepository<T extends ObjectLiteral>(
+    entity: EntityTarget<T>,
+  ): Repository<T> {
     const queryRunner = this.request['queryRunner'] as QueryRunner | undefined;
     if (!queryRunner) {
       throw new InternalServerErrorException(

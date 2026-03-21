@@ -20,7 +20,9 @@ export class SchoolsService {
       where: [{ name: createSchoolDto.name }, { cnpj: createSchoolDto.cnpj }],
     });
     if (existing) {
-      throw new ConflictException('Já existe uma unidade com este nome ou CNPJ');
+      throw new ConflictException(
+        'Já existe uma unidade com este nome ou CNPJ',
+      );
     }
 
     const count = await schoolRepo.count();
@@ -59,7 +61,9 @@ export class SchoolsService {
   }
 
   async findAll(): Promise<School[]> {
-    return this.tenantRepo.getRepository(School).find({ relations: ['branches'] });
+    return this.tenantRepo
+      .getRepository(School)
+      .find({ relations: ['branches'] });
   }
 
   async findOne(id: string): Promise<School> {
@@ -86,7 +90,9 @@ export class SchoolsService {
         .getOne();
 
       if (existing) {
-        throw new ConflictException('Já existe outra unidade com este nome ou CNPJ');
+        throw new ConflictException(
+          'Já existe outra unidade com este nome ou CNPJ',
+        );
       }
     }
 
@@ -97,7 +103,11 @@ export class SchoolsService {
         .set({ isMatrix: false, parentSchoolId: null })
         .execute();
 
-      Object.assign(school, { ...updateSchoolDto, isMatrix: true, parentSchoolId: null });
+      Object.assign(school, {
+        ...updateSchoolDto,
+        isMatrix: true,
+        parentSchoolId: null,
+      });
       const saved = await schoolRepo.save(school);
 
       await schoolRepo
@@ -112,7 +122,10 @@ export class SchoolsService {
 
     if (updateSchoolDto.isMatrix === false) {
       const matrix = await schoolRepo.findOne({ where: { isMatrix: true } });
-      Object.assign(school, { ...updateSchoolDto, parentSchoolId: matrix?.id || null });
+      Object.assign(school, {
+        ...updateSchoolDto,
+        parentSchoolId: matrix?.id || null,
+      });
     } else {
       Object.assign(school, updateSchoolDto);
     }
@@ -153,7 +166,9 @@ export class SchoolsService {
     });
     if (!school) throw new NotFoundException('School not found');
     if (school.students.some((s) => s.id === studentId)) {
-      throw new ConflictException('Student already associated with this school');
+      throw new ConflictException(
+        'Student already associated with this school',
+      );
     }
     school.students.push({ id: studentId } as any);
     return repo.save(school);

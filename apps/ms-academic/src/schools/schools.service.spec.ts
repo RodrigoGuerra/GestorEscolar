@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 import { SchoolsService } from './schools.service';
 import { TenantRepositoryService } from '../common/tenant/tenant-repository.service';
-import { School } from './entities/school.entity';
 
 describe('SchoolsService — student association', () => {
   let service: SchoolsService;
@@ -117,7 +116,9 @@ describe('SchoolsService — student association', () => {
       expect(mockRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ students: [{ id: 'stu-1' }] }),
       );
-      expect(result.students).toContainEqual(expect.objectContaining({ id: 'stu-1' }));
+      expect(result.students).toContainEqual(
+        expect.objectContaining({ id: 'stu-1' }),
+      );
     });
 
     it('should throw ConflictException if student already associated', async () => {
@@ -150,24 +151,26 @@ describe('SchoolsService — student association', () => {
       expect(mockRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ students: [] }),
       );
-      expect(result.students).not.toContainEqual(expect.objectContaining({ id: 'stu-1' }));
+      expect(result.students).not.toContainEqual(
+        expect.objectContaining({ id: 'stu-1' }),
+      );
     });
 
     it('should throw NotFoundException if student not in school', async () => {
       const schoolEmpty = { ...mockSchool, students: [] };
       mockRepo.findOne.mockResolvedValue(schoolEmpty);
 
-      await expect(service.removeStudent('school-1', 'stu-999')).rejects.toThrow(
-        'Student not associated with this school',
-      );
+      await expect(
+        service.removeStudent('school-1', 'stu-999'),
+      ).rejects.toThrow('Student not associated with this school');
     });
 
     it('should throw NotFoundException if school not found', async () => {
       mockRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeStudent('nonexistent', 'stu-1')).rejects.toThrow(
-        'School not found',
-      );
+      await expect(
+        service.removeStudent('nonexistent', 'stu-1'),
+      ).rejects.toThrow('School not found');
     });
   });
 });

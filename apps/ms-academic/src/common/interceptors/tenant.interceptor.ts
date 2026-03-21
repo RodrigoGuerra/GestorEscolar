@@ -53,7 +53,9 @@ export class TenantInterceptor implements NestInterceptor {
         ) {
           tenantSchema = 'public';
         } else {
-          throw new ForbiddenException(`Access to tenant public is not authorized`);
+          throw new ForbiddenException(
+            `Access to tenant public is not authorized`,
+          );
         }
       } else {
         // All roles (including admin/manager) must have the schema in their
@@ -108,7 +110,9 @@ export class TenantInterceptor implements NestInterceptor {
             [tenantSchema],
           );
           if (rows.length === 0) {
-            throw new ForbiddenException(`Tenant schema not found: "${tenantSchema}"`);
+            throw new ForbiddenException(
+              `Tenant schema not found: "${tenantSchema}"`,
+            );
           }
         }
         await queryRunner.query(`SET search_path TO "${tenantSchema}", public`);

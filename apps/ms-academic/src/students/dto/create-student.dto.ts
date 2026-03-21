@@ -19,7 +19,9 @@ export class CreateStudentDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: 'CPF deve estar no formato 000.000.000-00' })
+  @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
+    message: 'CPF deve estar no formato 000.000.000-00',
+  })
   cpf: string;
 
   @IsString()
@@ -76,7 +78,9 @@ export class CreateStudentDto {
 
   @IsString()
   @IsOptional()
-  @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: 'CPF do responsável deve estar no formato 000.000.000-00' })
+  @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
+    message: 'CPF do responsável deve estar no formato 000.000.000-00',
+  })
   guardianCpf?: string;
 
   @IsOptional()
@@ -87,5 +91,4 @@ export class CreateStudentDto {
   @IsString()
   @IsOptional()
   guardianPhone?: string;
-
 }

@@ -28,11 +28,15 @@ export class StudentsService {
       where: { id },
       relations: ['schools', 'classes'],
     });
-    if (!student) throw new NotFoundException(`Student with ID ${id} not found`);
+    if (!student)
+      throw new NotFoundException(`Student with ID ${id} not found`);
     return student;
   }
 
-  async update(id: string, updateStudentDto: UpdateStudentDto): Promise<Student> {
+  async update(
+    id: string,
+    updateStudentDto: UpdateStudentDto,
+  ): Promise<Student> {
     const repo = this.tenantRepo.getRepository(Student);
     const student = await this.findOne(id);
     return repo.save(Object.assign(student, updateStudentDto));

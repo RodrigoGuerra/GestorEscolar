@@ -30,7 +30,10 @@ describe('ClassesController', () => {
     it('should call service.removeStudent with classId and studentId', async () => {
       const classId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       const studentId = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
-      service.removeStudent.mockResolvedValue({ id: classId, students: [] } as any);
+      service.removeStudent.mockResolvedValue({
+        id: classId,
+        students: [],
+      } as any);
 
       await controller.removeStudent(classId, studentId);
 

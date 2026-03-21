@@ -31,7 +31,10 @@ describe('SchoolsController — student association', () => {
   describe('getStudents', () => {
     it('should call service.getStudents with schoolId', async () => {
       const schoolId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-      service.getStudents.mockResolvedValue({ id: schoolId, students: [] } as any);
+      service.getStudents.mockResolvedValue({
+        id: schoolId,
+        students: [],
+      } as any);
 
       await controller.getStudents(schoolId);
 
@@ -43,7 +46,10 @@ describe('SchoolsController — student association', () => {
     it('should call service.addStudent with schoolId and studentId', async () => {
       const schoolId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       const studentId = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
-      service.addStudent.mockResolvedValue({ id: schoolId, students: [] } as any);
+      service.addStudent.mockResolvedValue({
+        id: schoolId,
+        students: [],
+      } as any);
 
       await controller.addStudent(schoolId, studentId);
 
@@ -55,7 +61,10 @@ describe('SchoolsController — student association', () => {
     it('should call service.removeStudent with schoolId and studentId', async () => {
       const schoolId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       const studentId = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
-      service.removeStudent.mockResolvedValue({ id: schoolId, students: [] } as any);
+      service.removeStudent.mockResolvedValue({
+        id: schoolId,
+        students: [],
+      } as any);
 
       await controller.removeStudent(schoolId, studentId);
 

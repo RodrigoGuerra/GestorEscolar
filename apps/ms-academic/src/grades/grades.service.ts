@@ -13,7 +13,9 @@ export class GradesService {
   }
 
   findAll() {
-    return this.tenantRepo.getRepository(Grade).find({ relations: ['subject'] });
+    return this.tenantRepo
+      .getRepository(Grade)
+      .find({ relations: ['subject'] });
   }
 
   async findOne(id: string) {
