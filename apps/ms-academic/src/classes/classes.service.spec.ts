@@ -130,4 +130,40 @@ describe('ClassesService', () => {
       );
     });
   });
+
+  describe('removeStudent', () => {
+    it('should remove student from class, mutate entity, and save', async () => {
+      const studentId = 'stu-1';
+      const classWithStudent = { ...mockClass, students: [{ id: studentId }] };
+      const classWithoutStudent = { ...mockClass, students: [] };
+
+      mockRepo.findOne.mockResolvedValue(classWithStudent);
+      mockRepo.save.mockResolvedValue(classWithoutStudent);
+
+      const result = await service.removeStudent('cls-1', studentId);
+
+      // Verify the entity was mutated before save
+      expect(mockRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ students: [] }),
+      );
+      expect(result.students).not.toContainEqual(expect.objectContaining({ id: studentId }));
+    });
+
+    it('should throw NotFoundException if student is not assigned to class', async () => {
+      const classWithNoStudents = { ...mockClass, students: [] };
+      mockRepo.findOne.mockResolvedValue(classWithNoStudents);
+
+      await expect(service.removeStudent('cls-1', 'stu-999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw NotFoundException if class does not exist', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.removeStudent('nonexistent', 'stu-1')).rejects.toThrow(
+        'Class not found',
+      );
+    });
+  });
 });

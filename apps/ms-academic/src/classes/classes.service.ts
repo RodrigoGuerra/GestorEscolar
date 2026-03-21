@@ -57,4 +57,19 @@ export class ClassesService {
     classEntity.students.push({ id: studentId } as any);
     return repo.save(classEntity);
   }
+
+  async removeStudent(classId: string, studentId: string) {
+    const repo = this.tenantRepo.getRepository(Class);
+    const classEntity = await repo.findOne({
+      where: { id: classId },
+      relations: ['students'],
+    });
+    if (!classEntity) throw new NotFoundException('Class not found');
+    const index = classEntity.students.findIndex((s) => s.id === studentId);
+    if (index === -1) {
+      throw new NotFoundException('Student not assigned to this class');
+    }
+    classEntity.students.splice(index, 1);
+    return repo.save(classEntity);
+  }
 }
