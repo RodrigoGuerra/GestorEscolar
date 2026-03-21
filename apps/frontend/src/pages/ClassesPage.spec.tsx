@@ -110,7 +110,9 @@ describe('ClassesPage - student management modal', () => {
     fireEvent.change(screen.getByPlaceholderText('Buscar aluno...'), {
       target: { value: 'Bob' },
     });
-    expect(screen.queryByText('Alice')).not.toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+    });
   });
 });

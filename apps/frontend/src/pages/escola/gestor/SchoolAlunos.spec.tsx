@@ -102,4 +102,24 @@ describe('SchoolAlunos', () => {
     // counter is in the header card
     expect(screen.getByText('Alunos Matriculados')).toBeInTheDocument();
   });
+
+  it('filter "Associados" shows only associated students', async () => {
+    renderComponent();
+    await waitFor(() => screen.getByText('Alice'));
+    fireEvent.click(screen.getByText('Associados'));
+    await waitFor(() => {
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+    });
+  });
+
+  it('filter "Não Associados" shows only non-associated students', async () => {
+    renderComponent();
+    await waitFor(() => screen.getByText('Bob'));
+    fireEvent.click(screen.getByText('Não Associados'));
+    await waitFor(() => {
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+    });
+  });
 });

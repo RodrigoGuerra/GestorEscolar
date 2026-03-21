@@ -51,6 +51,37 @@ describe('SchoolsService — student association', () => {
     service = module.get<SchoolsService>(SchoolsService);
   });
 
+  describe('getSchoolMetrics', () => {
+    it('should count only ACTIVE students in the school', async () => {
+      const schoolWithStudents = {
+        ...mockSchool,
+        students: [
+          { id: 'stu-1', status: 'ACTIVE' },
+          { id: 'stu-2', status: 'INACTIVE' },
+          { id: 'stu-3', status: 'ACTIVE' },
+        ],
+      };
+      mockRepo.count.mockResolvedValue(5);
+      mockRepo.findOne.mockResolvedValue(schoolWithStudents);
+
+      const result = await service.getSchoolMetrics('school-1');
+
+      expect(result.activeStudents).toBe(2);
+      expect(result.classesCount).toBe(5);
+      expect(result.eventsCount).toBe(0);
+    });
+
+    it('should return 0 activeStudents if school not found', async () => {
+      mockRepo.count.mockResolvedValue(3);
+      mockRepo.findOne.mockResolvedValue(null);
+
+      const result = await service.getSchoolMetrics('school-1');
+
+      expect(result.activeStudents).toBe(0);
+      expect(result.classesCount).toBe(3);
+    });
+  });
+
   describe('getStudents', () => {
     it('should return school with students', async () => {
       const schoolWithStudents = { ...mockSchool, students: [{ id: 'stu-1' }] };
